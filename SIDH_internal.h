@@ -180,7 +180,7 @@ static __inline unsigned int is_digit_lessthan_ct(digit_t x, digit_t y)
       MUL128(multiplier, multiplicand, product);                       \
       ADC128(addend, product, carry, result); }   
 
-#elif (TARGET == TARGET_AMD64 && OS_TARGET == OS_LINUX)
+#elif (TARGET == TARGET_AMD64 && OS_TARGET == OS_LINUX) || (TARGET == TARGET_AMD64 && OS_TARGET == OS_BSD)
 
 // Digit multiplication
 #define MUL(multiplier, multiplicand, hi, lo)                                                     \

@@ -41,7 +41,7 @@ __inline void fpadd751(digit_t* a, digit_t* b, digit_t* c)
         ADDC(carry, c[i], ((digit_t*)p751)[i] & mask, carry, c[i]); 
     } 
     
-#elif (OS_TARGET == OS_LINUX)                 
+#elif (OS_TARGET == OS_LINUX || OS_TARGET == OS_BSD)                 
     
     fpadd751_asm(a, b, c);    
 
@@ -68,7 +68,7 @@ __inline void fpsub751(digit_t* a, digit_t* b, digit_t* c)
         ADDC(borrow, c[i], ((digit_t*)p751)[i] & mask, borrow, c[i]); 
     }
     
-#elif (OS_TARGET == OS_LINUX)                 
+#elif (OS_TARGET == OS_LINUX || OS_TARGET == OS_BSD)                 
     
     fpsub751_asm(a, b, c);    
 
@@ -512,7 +512,7 @@ void mp_mul_comba(digit_t* a, digit_t* b, digit_t* c, unsigned int nwords)
     c[22] = uv[0];
     c[23] = uv[1];
 
-#elif (OS_TARGET == OS_LINUX)
+#elif (OS_TARGET == OS_LINUX || OS_TARGET == OS_BSD)
     
     mul751_asm(a, b, c);
 
@@ -848,7 +848,7 @@ void rdc_mont(dfelm_t ma, felm_t mc)
         ADDC(carry, mc[i], ((digit_t*)p751)[i] & mask, carry, mc[i]);
     }
     
-#elif (OS_TARGET == OS_LINUX)                 
+#elif (OS_TARGET == OS_LINUX || OS_TARGET == OS_BSD)                 
     
     rdc751_asm(ma, mc);    
 

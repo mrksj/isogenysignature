@@ -1,2 +1,5 @@
 *.o
 kex_test
+kex_test.core
+tags
+ktrace.out

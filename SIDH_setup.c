@@ -9,8 +9,11 @@
 *
 *********************************************************************************************/ 
 
+#include <stdlib.h>
 #include "SIDH_internal.h"
-#include <malloc.h>
+#if (OS_TARGET != OS_BSD)
+    #include <malloc.h>
+#endif
 
 
 CRYPTO_STATUS SIDH_curve_initialize(PCurveIsogenyStruct pCurveIsogeny, RandomBytes RandomBytesFunction, PCurveIsogenyStaticData pCurveIsogenyData)
@@ -60,17 +63,17 @@ PCurveIsogenyStruct SIDH_curve_allocate(PCurveIsogenyStaticData CurveData)
     PCurveIsogenyStruct pCurveIsogeny = NULL;
 
     pCurveIsogeny = (PCurveIsogenyStruct)calloc(1, sizeof(CurveIsogenyStruct));
-    pCurveIsogeny->prime = (digit_t*)calloc(1, pbytes);
-    pCurveIsogeny->A = (digit_t*)calloc(1, pbytes);
-    pCurveIsogeny->C = (digit_t*)calloc(1, pbytes);
-    pCurveIsogeny->Aorder = (digit_t*)calloc(1, obytes);
-    pCurveIsogeny->Border = (digit_t*)calloc(1, obytes);
-    pCurveIsogeny->PA = (digit_t*)calloc(1, 2*pbytes);
-    pCurveIsogeny->PB = (digit_t*)calloc(1, 2*pbytes);
-    pCurveIsogeny->BigMont_order = (digit_t*)calloc(1, pbytes);
-    pCurveIsogeny->Montgomery_R2 = (digit_t*)calloc(1, pbytes);
-    pCurveIsogeny->Montgomery_pp = (digit_t*)calloc(1, pbytes);
-    pCurveIsogeny->Montgomery_one = (digit_t*)calloc(1, pbytes);
+    pCurveIsogeny->prime = calloc(1, pbytes);
+    pCurveIsogeny->A = calloc(1, pbytes);
+    pCurveIsogeny->C = calloc(1, pbytes);
+    pCurveIsogeny->Aorder = calloc(1, obytes);
+    pCurveIsogeny->Border = calloc(1, obytes);
+    pCurveIsogeny->PA = calloc(1, 2*pbytes);
+    pCurveIsogeny->PB = calloc(1, 2*pbytes);
+    pCurveIsogeny->BigMont_order = calloc(1, pbytes);
+    pCurveIsogeny->Montgomery_R2 = calloc(1, pbytes);
+    pCurveIsogeny->Montgomery_pp = calloc(1, pbytes);
+    pCurveIsogeny->Montgomery_one = calloc(1, pbytes);
 
     if (is_CurveIsogenyStruct_null(pCurveIsogeny)) {
         return NULL;

@@ -28,11 +28,14 @@ extern "C" {
 
 #define OS_WIN       1
 #define OS_LINUX     2
+#define OS_BSD       3
 
 #if defined(__WINDOWS__)        // Microsoft Windows OS
     #define OS_TARGET OS_WIN
 #elif defined(__LINUX__)        // Linux OS
     #define OS_TARGET OS_LINUX 
+#elif defined(__BSD__)          // BSD OS
+    #define OS_TARGET OS_BSD
 #else
     #error -- "Unsupported OS"
 #endif
@@ -136,6 +139,9 @@ extern "C" {
 #if defined(GENERIC_IMPLEMENTATION)                       
     typedef uint64_t uint128_t[2];
 #elif (TARGET == TARGET_AMD64 && OS_TARGET == OS_LINUX) && (COMPILER == COMPILER_GCC || COMPILER == COMPILER_CLANG)
+    #define UINT128_SUPPORT
+    typedef unsigned uint128_t __attribute__((mode(TI))); 
+#elif (TARGET == TARGET_AMD64 && OS_TARGET == OS_BSD) && (COMPILER == COMPILER_GCC || COMPILER == COMPILER_CLANG)
     #define UINT128_SUPPORT
     typedef unsigned uint128_t __attribute__((mode(TI))); 
 #elif (TARGET == TARGET_AMD64) && (OS_TARGET == OS_WIN && COMPILER == COMPILER_VC)
