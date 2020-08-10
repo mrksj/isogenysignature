@@ -1,0 +1,607 @@
+******** Start dump kex_test *******
+MT=1 M=8 I=1 F=0 U=0 J=1 R=0 X=0 C=0 cache=64 G=0
+Malloc dir of kex_test pool 0 at 0x922e1354190
+J=2 cache=0 Fl=8000
+Region slots free 512/512
+Finds 1998/0
+Inserts 0/0
+Deletes 0/0
+Cheap reallocs 0/0
+Other pool searches 0/0
+In use 24576
+Guarded 0
+Free chunk structs:
+Free pages cached: 0
+slot)  hash d  type               page                  f size [free/n]
+Leak report
+                 f     sum      #    avg
+
+Malloc dir of kex_test pool 1 at 0x922d83b0230
+J=1 cache=64 Fl=0
+Region slots free 510/512
+Finds 9441/276
+Inserts 296/22
+Deletes 294/13
+Cheap reallocs 0/0
+Other pool searches 0/1040
+In use 380928
+Guarded 0
+Free chunk structs:
+ 5)  72 chunk      0x922f4ed9000                0x0   32 127/128
+ 5)  72 
+ 5)  72 
+ 5)  72 
+ 6)  85 
+ 6)  85 
+ 6)  85 
+ 6)  85 
+ 7)  85 
+ 7)  85 
+ 7)  85 
+ 7)  85 
+ 8) 102 
+ 8) 102 
+ 8) 102 
+ 8) 102 
+ 9) 102 
+ 9) 102 
+ 9) 102 
+ 9) 102 
+10) 102 
+10) 102 
+10) 102 
+10) 102 
+Free pages cached: 64
+ 0) free at 0x9238b54a000: 1
+ 1) free at 0x922e07a8000: 1
+ 2) free at 0x922b6381000: 1
+ 3) free at 0x92306927000: 1
+ 4) free at 0x9237adfa000: 1
+ 5) free at 0x9232554f000: 1
+ 6) free at 0x92338056000: 1
+ 7) free at 0x922ae999000: 1
+ 8) free at 0x9235011a000: 1
+ 9) free at 0x922901e0000: 1
+10) free at 0x92376a04000: 1
+11) free at 0x92311ea9000: 1
+12) free at 0x92324c6d000: 1
+13) free at 0x922e1fd5000: 1
+14) free at 0x922f5acc000: 1
+15) free at 0x922e092c000: 1
+16) free at 0x922aacad000: 1
+17) free at 0x92358a6c000: 1
+18) free at 0x922f1a67000: 1
+19) free at 0x92359c3b000: 1
+20) free at 0x922a3f56000: 1
+21) free at 0x9236cdbb000: 1
+22) free at 0x923771f7000: 1
+23) free at 0x9232430a000: 1
+24) free at 0x922c8e4a000: 1
+25) free at 0x922dbeb4000: 1
+26) free at 0x9231d989000: 1
+27) free at 0x9230e214000: 1
+28) free at 0x9231d1b0000: 1
+29) free at 0x92333a07000: 1
+30) free at 0x923019f5000: 1
+31) free at 0x9229014f000: 1
+32) free at 0x9232534e000: 1
+33) free at 0x922b8724000: 1
+34) free at 0x92342f26000: 1
+35) free at 0x923067bd000: 1
+36) free at 0x922d3dc9000: 1
+37) free at 0x9231e658000: 1
+38) free at 0x922f17d4000: 1
+39) free at 0x922b715f000: 1
+40) free at 0x9232c77f000: 1
+41) free at 0x92386753000: 1
+42) free at 0x9237709b000: 1
+43) free at 0x92295b15000: 1
+44) free at 0x92315c79000: 1
+45) free at 0x92315f5e000: 1
+46) free at 0x922a3b8c000: 1
+47) free at 0x9230151f000: 1
+48) free at 0x92347545000: 1
+49) free at 0x92368710000: 1
+50) free at 0x9233259b000: 1
+51) free at 0x92307797000: 1
+52) free at 0x922e6a7c000: 1
+53) free at 0x9230e7a0000: 1
+54) free at 0x923662a6000: 1
+55) free at 0x92372c87000: 1
+56) free at 0x92314588000: 1
+57) free at 0x923105fc000: 1
+58) free at 0x9238db6b000: 1
+59) free at 0x922b36da000: 1
+60) free at 0x92290717000: 1
+61) free at 0x922dde18000: 1
+62) free at 0x9234b2a4000: 1
+63) free at 0x92303758000: 1
+slot)  hash d  type               page                  f size [free/n]
+ 116) # 116 0 pages      0x92380022000      0x922ea7e09ac 65536
+ 1d6) # 1d6 0 chunk      0x922f4ed9000                0x0   32 127/128
+Leak report
+                 f     sum      #    avg
+               0x0      32      1     32
+     0x922ea7e09ac   65536      1  65536
+
+Malloc dir of kex_test pool 2 at 0x922f0b8d3d0
+J=1 cache=64 Fl=0
+Region slots free 507/512
+Finds 15211/176
+Inserts 290/0
+Deletes 285/0
+Cheap reallocs 0/0
+Other pool searches 9934/11654
+In use 294912
+Guarded 0
+Free chunk structs:
+ 5)  69 chunk      0x9229dab9000                0x0   32 122/128
+ 5)  69 chunk      0x9229dac3000                0x0   32 123/128
+ 5)  69 chunk      0x9236d0f0000                0x0   32 126/128
+ 5)  69 chunk      0x922feb3a000                0x0   32 122/128
+ 6)  84 
+ 6)  84 
+ 6)  84 chunk      0x92311d02000                0x0   64 63/64
+ 6)  84 
+ 7)  85 
+ 7)  85 
+ 7)  85 
+ 7)  85 
+ 8) 102 
+ 8) 102 
+ 8) 102 
+ 8) 102 
+10) 102 
+10) 102 
+10) 102 
+10) 102 
+Free pages cached: 56
+ 1) free at 0x922c4915000: 1
+ 8) free at 0x9229dac4000: 1
+15) free at 0x9229dac7000: 1
+18) free at 0x9229dacc000: 1
+21) free at 0x9229dac6000: 1
+28) free at 0x9229dabe000: 1
+29) free at 0x9229dabb000: 1
+36) free at 0x922c4914000: 1
+37) free at 0x9236d0f1000: 1
+43) free at 0x9229dac5000: 1
+45) free at 0x9229dabc000: 1
+49) free at 0x922c4916000: 1
+55) free at 0x9229dac0000: 1
+57) free at 0x9229dac8000: 4
+58) free at 0x922c4917000: 1
+59) free at 0x9229dabf000: 1
+60) free at 0x9229dacd000: 8
+61) free at 0x922cf710000: 28
+62) free at 0x9229dabd000: 1
+slot)  hash d  type               page                  f size [free/n]
+  e6) #  e6 0 chunk      0x9229dac3000                0x0   32 123/128
+  f5) #  f5 0 chunk      0x922feb3a000                0x0   32 122/128
+ 12f) # 12f 0 chunk      0x92311d02000      0x92375bf13bf   64 63/64
+ 146) # 146 0 chunk      0x9236d0f0000                0x0   32 126/128
+ 1f0) # 1f0 0 chunk      0x9229dab9000                0x0   32 122/128
+Leak report
+                 f     sum      #    avg
+               0x0     608     19     32
+     0x92375bf13bf      64      1     64
+
+Malloc dir of kex_test pool 3 at 0x9229179d010
+J=1 cache=64 Fl=0
+Region slots free 512/512
+Finds 18772/371
+Inserts 356/25
+Deletes 356/15
+Cheap reallocs 0/0
+Other pool searches 0/1488
+In use 303104
+Guarded 0
+Free chunk structs:
+ 7)  85 
+ 7)  85 
+ 7)  85 
+ 7)  85 
+ 8) 102 
+ 8) 102 
+ 8) 102 
+ 8) 102 
+ 9) 102 
+ 9) 102 
+ 9) 102 
+ 9) 102 
+10) 102 
+10) 102 
+10) 102 
+10) 102 
+Free pages cached: 64
+ 0) free at 0x923362c1000: 1
+ 1) free at 0x9234e194000: 1
+ 2) free at 0x922b5cf8000: 1
+ 3) free at 0x9238e442000: 1
+ 4) free at 0x9235686d000: 1
+ 5) free at 0x922b1cc5000: 1
+ 6) free at 0x92378b65000: 1
+ 7) free at 0x922e0c87000: 1
+ 8) free at 0x9231a6e4000: 1
+ 9) free at 0x9230063d000: 1
+10) free at 0x92366f2f000: 1
+11) free at 0x922e226d000: 1
+12) free at 0x9230c511000: 1
+13) free at 0x92323960000: 1
+14) free at 0x9236ff93000: 1
+15) free at 0x92355372000: 1
+16) free at 0x9228fb79000: 1
+17) free at 0x92297bd3000: 1
+18) free at 0x9236b147000: 1
+19) free at 0x92299db1000: 1
+20) free at 0x923549e4000: 1
+21) free at 0x922e5db4000: 1
+22) free at 0x922eb293000: 1
+23) free at 0x9233bb12000: 1
+24) free at 0x922920c6000: 1
+25) free at 0x922a1958000: 1
+26) free at 0x92389d95000: 1
+27) free at 0x92345de3000: 1
+28) free at 0x923155a8000: 1
+29) free at 0x9234f68f000: 1
+30) free at 0x922b30c0000: 1
+31) free at 0x922d1003000: 1
+32) free at 0x92369e85000: 1
+33) free at 0x9238937a000: 1
+34) free at 0x922b8598000: 1
+35) free at 0x9233b6ca000: 1
+36) free at 0x9233a51b000: 1
+37) free at 0x922c35e4000: 1
+38) free at 0x92318b3a000: 1
+39) free at 0x922cc7be000: 1
+40) free at 0x922b4cfd000: 1
+41) free at 0x922c0aae000: 1
+42) free at 0x9233c8bc000: 1
+43) free at 0x922cd75f000: 1
+44) free at 0x922d26c2000: 1
+45) free at 0x923261c3000: 1
+46) free at 0x922c757f000: 1
+47) free at 0x922c4172000: 1
+48) free at 0x9235866d000: 1
+49) free at 0x922ce50a000: 1
+50) free at 0x92355a48000: 1
+51) free at 0x9233ccbb000: 1
+52) free at 0x922a94e6000: 1
+53) free at 0x92372eb7000: 1
+54) free at 0x9234a8cc000: 1
+55) free at 0x92315ed9000: 1
+56) free at 0x922cb316000: 1
+57) free at 0x922c0507000: 1
+58) free at 0x923137fd000: 1
+59) free at 0x922f5153000: 1
+60) free at 0x9231c260000: 1
+61) free at 0x9229e9c2000: 1
+62) free at 0x9235349e000: 1
+63) free at 0x922cec9e000: 1
+slot)  hash d  type               page                  f size [free/n]
+Leak report
+                 f     sum      #    avg
+
+Malloc dir of kex_test pool 4 at 0x923287e5070
+J=1 cache=64 Fl=0
+Region slots free 512/512
+Finds 9493/128
+Inserts 78/0
+Deletes 78/0
+Cheap reallocs 0/0
+Other pool searches 0/496
+In use 73728
+Guarded 0
+Free chunk structs:
+ 8) 102 
+ 8) 102 
+ 8) 102 
+ 8) 102 
+10) 102 
+10) 102 
+10) 102 
+10) 102 
+Free pages cached: 10
+ 8) free at 0x922b3ce4000: 1
+20) free at 0x92298bde000: 1
+27) free at 0x922f2c2e000: 1
+28) free at 0x9231dddb000: 1
+35) free at 0x9230ca01000: 1
+44) free at 0x922c9870000: 1
+45) free at 0x922caf80000: 1
+50) free at 0x9234dee1000: 1
+56) free at 0x92371534000: 1
+63) free at 0x922b77cc000: 1
+slot)  hash d  type               page                  f size [free/n]
+Leak report
+                 f     sum      #    avg
+
+Malloc dir of kex_test pool 5 at 0x9237b9a9050
+J=1 cache=64 Fl=0
+Region slots free 512/512
+Finds 10799/110
+Inserts 108/11
+Deletes 108/8
+Cheap reallocs 0/0
+Other pool searches 0/248
+In use 303104
+Guarded 0
+Free chunk structs:
+ 7)  85 
+ 7)  85 
+ 7)  85 
+ 7)  85 
+ 8) 102 
+ 8) 102 
+ 8) 102 
+ 8) 102 
+ 9) 102 
+ 9) 102 
+ 9) 102 
+ 9) 102 
+10) 102 
+10) 102 
+10) 102 
+10) 102 
+Free pages cached: 64
+ 0) free at 0x92321fc1000: 1
+ 1) free at 0x922a4f29000: 1
+ 2) free at 0x92304c59000: 1
+ 3) free at 0x92381ebf000: 1
+ 4) free at 0x922de58f000: 1
+ 5) free at 0x9230660a000: 1
+ 6) free at 0x922fdaf7000: 1
+ 7) free at 0x92292ba9000: 1
+ 8) free at 0x9232021d000: 1
+ 9) free at 0x922bcb9d000: 1
+10) free at 0x92299411000: 1
+11) free at 0x92310c44000: 1
+12) free at 0x92334f0e000: 1
+13) free at 0x922ef387000: 1
+14) free at 0x922fa245000: 1
+15) free at 0x922deb41000: 1
+16) free at 0x922d3db0000: 1
+17) free at 0x9236b3c4000: 1
+18) free at 0x92307f44000: 1
+19) free at 0x9234092f000: 1
+20) free at 0x922daa0e000: 1
+21) free at 0x922bd1dd000: 1
+22) free at 0x922f4af7000: 1
+23) free at 0x92372099000: 1
+24) free at 0x9238054c000: 1
+25) free at 0x9229172f000: 1
+26) free at 0x922da868000: 1
+27) free at 0x922b1e2a000: 1
+28) free at 0x923117a6000: 1
+29) free at 0x9237c79a000: 1
+30) free at 0x92318903000: 1
+31) free at 0x922aba74000: 1
+32) free at 0x922e43f7000: 1
+33) free at 0x9231dde8000: 1
+34) free at 0x9237cb39000: 1
+35) free at 0x922c0ca3000: 1
+36) free at 0x922d6e70000: 1
+37) free at 0x92341c71000: 1
+38) free at 0x92335741000: 1
+39) free at 0x92305963000: 1
+40) free at 0x922fced5000: 1
+41) free at 0x92335349000: 1
+42) free at 0x923730bf000: 1
+43) free at 0x92323285000: 1
+44) free at 0x923757cd000: 1
+45) free at 0x9232c944000: 1
+46) free at 0x92306686000: 1
+47) free at 0x922bbaa8000: 1
+48) free at 0x92379be5000: 1
+49) free at 0x922fa2c2000: 1
+50) free at 0x922a0ae8000: 1
+51) free at 0x92312f30000: 1
+52) free at 0x922ea936000: 1
+53) free at 0x923419d9000: 1
+54) free at 0x92317c91000: 1
+55) free at 0x92353b07000: 1
+56) free at 0x92305771000: 1
+57) free at 0x9231f378000: 1
+58) free at 0x922bff94000: 1
+59) free at 0x922fdc87000: 1
+60) free at 0x922e5406000: 1
+61) free at 0x922da144000: 1
+62) free at 0x92362f6d000: 1
+63) free at 0x92374d52000: 1
+slot)  hash d  type               page                  f size [free/n]
+Leak report
+                 f     sum      #    avg
+
+Malloc dir of kex_test pool 6 at 0x922e865a3d0
+J=1 cache=64 Fl=0
+Region slots free 512/512
+Finds 20210/1986
+Inserts 501/64
+Deletes 501/22
+Cheap reallocs 0/0
+Other pool searches 0/2232
+In use 303104
+Guarded 0
+Free chunk structs:
+ 7)  85 
+ 7)  85 
+ 7)  85 
+ 7)  85 
+ 8) 102 
+ 8) 102 
+ 8) 102 
+ 8) 102 
+ 9) 102 
+ 9) 102 
+ 9) 102 
+ 9) 102 
+10) 102 
+10) 102 
+10) 102 
+10) 102 
+Free pages cached: 64
+ 0) free at 0x922a5710000: 1
+ 1) free at 0x9235c9b6000: 1
+ 2) free at 0x922fa4a6000: 1
+ 3) free at 0x9235f571000: 1
+ 4) free at 0x92296fc8000: 1
+ 5) free at 0x9230d95e000: 1
+ 6) free at 0x922e4e00000: 1
+ 7) free at 0x922ffd8e000: 1
+ 8) free at 0x9233ad28000: 1
+ 9) free at 0x922ba5b2000: 1
+10) free at 0x92312a70000: 1
+11) free at 0x92302b29000: 1
+12) free at 0x9238c101000: 1
+13) free at 0x92360f8b000: 1
+14) free at 0x922b8d90000: 1
+15) free at 0x92320874000: 1
+16) free at 0x92366beb000: 1
+17) free at 0x923043dc000: 1
+18) free at 0x9232e2de000: 1
+19) free at 0x922aa2c3000: 1
+20) free at 0x922b7fe9000: 1
+21) free at 0x9234a94f000: 1
+22) free at 0x9234b812000: 1
+23) free at 0x9230d165000: 1
+24) free at 0x92356c83000: 1
+25) free at 0x92368f97000: 1
+26) free at 0x9230918b000: 1
+27) free at 0x9234ecee000: 1
+28) free at 0x9230ff8b000: 1
+29) free at 0x923870d2000: 1
+30) free at 0x922a7687000: 1
+31) free at 0x9238560b000: 1
+32) free at 0x9238b46b000: 1
+33) free at 0x922944f2000: 1
+34) free at 0x922c6678000: 1
+35) free at 0x923756b9000: 1
+36) free at 0x923285c5000: 1
+37) free at 0x92363f08000: 1
+38) free at 0x923329d4000: 1
+39) free at 0x9230837e000: 1
+40) free at 0x922b522b000: 1
+41) free at 0x923313b5000: 1
+42) free at 0x92374b78000: 1
+43) free at 0x92348414000: 1
+44) free at 0x923166e8000: 1
+45) free at 0x9232b8df000: 1
+46) free at 0x92358346000: 1
+47) free at 0x92309e3a000: 1
+48) free at 0x923644ac000: 1
+49) free at 0x922f5195000: 1
+50) free at 0x9233dcfb000: 1
+51) free at 0x922df522000: 1
+52) free at 0x922c00e4000: 1
+53) free at 0x922cbb4d000: 1
+54) free at 0x9229d744000: 1
+55) free at 0x92356978000: 1
+56) free at 0x923576b3000: 1
+57) free at 0x922a9722000: 1
+58) free at 0x923579c1000: 1
+59) free at 0x922cb8eb000: 1
+60) free at 0x922ffcf1000: 1
+61) free at 0x922e79fd000: 1
+62) free at 0x922e530e000: 1
+63) free at 0x922c692f000: 1
+slot)  hash d  type               page                  f size [free/n]
+Leak report
+                 f     sum      #    avg
+
+Malloc dir of kex_test pool 7 at 0x9231680d2e0
+J=1 cache=64 Fl=0
+Region slots free 512/512
+Finds 11251/119
+Inserts 286/7
+Deletes 286/2
+Cheap reallocs 0/0
+Other pool searches 0/992
+In use 303104
+Guarded 0
+Free chunk structs:
+ 7)  85 
+ 7)  85 
+ 7)  85 
+ 7)  85 
+ 8) 102 
+ 8) 102 
+ 8) 102 
+ 8) 102 
+ 9) 102 
+ 9) 102 
+ 9) 102 
+ 9) 102 
+10) 102 
+10) 102 
+10) 102 
+10) 102 
+Free pages cached: 64
+ 0) free at 0x922c8672000: 1
+ 1) free at 0x92389e73000: 1
+ 2) free at 0x922e43fb000: 1
+ 3) free at 0x9230f299000: 1
+ 4) free at 0x922d0f6b000: 1
+ 5) free at 0x92297cf4000: 1
+ 6) free at 0x923794f6000: 1
+ 7) free at 0x92328f61000: 1
+ 8) free at 0x9229f171000: 1
+ 9) free at 0x922cab9c000: 1
+10) free at 0x92301a95000: 1
+11) free at 0x922c6712000: 1
+12) free at 0x92365a5c000: 1
+13) free at 0x92359ffd000: 1
+14) free at 0x922cbb95000: 1
+15) free at 0x922d0038000: 1
+16) free at 0x923168c8000: 1
+17) free at 0x92382f22000: 1
+18) free at 0x922fa1a5000: 1
+19) free at 0x922d1969000: 1
+20) free at 0x92364eb7000: 1
+21) free at 0x9235aeb3000: 1
+22) free at 0x923066d2000: 1
+23) free at 0x92344059000: 1
+24) free at 0x9233da2c000: 1
+25) free at 0x92318f67000: 1
+26) free at 0x9234e12d000: 1
+27) free at 0x92374c74000: 1
+28) free at 0x92357b33000: 1
+29) free at 0x92291bdd000: 1
+30) free at 0x922dbf25000: 1
+31) free at 0x922974bc000: 1
+32) free at 0x9230a9ca000: 1
+33) free at 0x9231c807000: 1
+34) free at 0x92307bc2000: 1
+35) free at 0x923407b3000: 1
+36) free at 0x923307a0000: 1
+37) free at 0x922b8fe5000: 1
+38) free at 0x922ea237000: 1
+39) free at 0x9230eee3000: 1
+40) free at 0x922cf14e000: 1
+41) free at 0x92372e0c000: 1
+42) free at 0x9232e813000: 1
+43) free at 0x92355693000: 1
+44) free at 0x922907ce000: 1
+45) free at 0x922fe94c000: 1
+46) free at 0x9232d5e6000: 1
+47) free at 0x92303b4f000: 1
+48) free at 0x9233f981000: 1
+49) free at 0x9229c2d2000: 1
+50) free at 0x922b4ca7000: 1
+51) free at 0x922f278e000: 1
+52) free at 0x922a90a8000: 1
+53) free at 0x922d7faf000: 1
+54) free at 0x9234f243000: 1
+55) free at 0x92352f76000: 1
+56) free at 0x9235769b000: 1
+57) free at 0x922db8a8000: 1
+58) free at 0x9236ba56000: 1
+59) free at 0x9229b8ca000: 1
+60) free at 0x922f2d1d000: 1
+61) free at 0x9238b061000: 1
+62) free at 0x92374615000: 1
+63) free at 0x922eeaf3000: 1
+slot)  hash d  type               page                  f size [free/n]
+Leak report
+                 f     sum      #    avg
+
+******** End dump kex_test *******

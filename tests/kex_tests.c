@@ -129,6 +129,14 @@ cleanup:
     clear_words((void*)SharedSecretA, NBYTES_TO_NWORDS(2*pbytes));
     clear_words((void*)SharedSecretB, NBYTES_TO_NWORDS(2*pbytes));
 
+    //XXX: think about freeing here
+    free(PrivateKeyA);
+    free(PrivateKeyB);
+    free(PublicKeyA);
+    free(PublicKeyB);
+    free(SharedSecretA);
+    free(SharedSecretB);
+
     return Status;
 }
 
@@ -339,6 +347,14 @@ cleanup:
     clear_words((void*)PublicKeyB, NBYTES_TO_NWORDS(4*2*pbytes));
     clear_words((void*)SharedSecretA, NBYTES_TO_NWORDS(2*pbytes));
     clear_words((void*)SharedSecretB, NBYTES_TO_NWORDS(2*pbytes));
+
+    //XXX: again free maybe here.
+    free(PrivateKeyA);
+    free(PrivateKeyB);
+    free(PublicKeyA);
+    free(PublicKeyB);
+    free(SharedSecretA);
+    free(SharedSecretB);
 
     return Status;
 }
@@ -603,7 +619,10 @@ void *sign_thread(void *TPS) {
         //cycles = cycles2 - cycles1;
         //printf("ZKP round %d ran in ............ %10lld cycles\n", r, cycles);
         //totcycles += cycles;
+        
+        free(TempPubKey);
     }
+
 
 
 }
@@ -681,6 +700,8 @@ CRYPTO_STATUS isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData, unsigned ch
 
 cleanup:
     SIDH_curve_free(CurveIsogeny);
+    free(datastring);
+    free(cHash);
 
     return Status;
 }
@@ -772,6 +793,9 @@ void *verify_thread(void *TPV) {
                 verified = false;
                 printf("verifying E/<S> -> E/<R,S> failed\n");
             }
+            //XXX
+            free(TempPubKey);
+            free(TempSharSec);
 
         } else {
             //printf("round %d: bit 1 - ", r);
@@ -806,6 +830,9 @@ void *verify_thread(void *TPV) {
                 verified = false;
                 printf("verifying E/<R> -> E/<R,S> failed\n");
             }
+            // XXX:
+            free(TempPubKey);
+            free(TempSharSec);
         }
     }
 
@@ -875,6 +902,8 @@ CRYPTO_STATUS isogeny_verify(PCurveIsogenyStaticData CurveIsogenyData, unsigned 
 
 cleanup:
     SIDH_curve_free(CurveIsogeny);
+    free(datastring);
+    free(cHash);
 
     return Status;
 }
@@ -996,6 +1025,19 @@ int main(int argc, char *argv[])
 
         clear_words((void*)PrivateKey, NBYTES_TO_NWORDS(obytes));
         clear_words((void*)PublicKey, NBYTES_TO_NWORDS(4*2*pbytes));
+
+        free(PrivateKey);
+        free(PublicKey);
+
+        int i;
+        for(i=0; i<NUM_ROUNDS; i++)
+        {
+            free(sig.Randoms[i]);
+            free(sig.Commitments1[i]);
+            free(sig.Commitments2[i]);
+            free(sig.psiS[i]);
+        }
+        free(sig.HashResp);
 
 
 

@@ -1,7 +1,7 @@
 ####  Makefile for compilation on BSD  ####
 
-OPT=-O0
 #OPT=-O3     # Optimization option by default
+OPT=-O0
 
 COMPILER=clang
 
