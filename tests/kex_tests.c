@@ -42,8 +42,8 @@ static const uint64_t scalar1[12] = { 0x154A166BBD471DF4, 0xBF7CA3B41010FE6B, 0x
 
 CRYPTO_STATUS cryptotest_kex(PCurveIsogenyStaticData CurveIsogenyData)
 { // Testing key exchange
-    unsigned int pbytes = (CurveIsogenyData->pwordbits + 7)/8;   // Number of bytes in a field element
-    unsigned int obytes = (CurveIsogenyData->owordbits + 7)/8;   // Number of bytes in an element in [1, order]
+    unsigned int pbytes = (CurveIsogenyData->pwordbits + 7)/8;   // Number of bytes in a field element (96)
+    unsigned int obytes = (CurveIsogenyData->owordbits + 7)/8;   // Number of bytes in an element in [1, order] (48)
     unsigned char *PrivateKeyA, *PrivateKeyB, *PublicKeyA, *PublicKeyB, *SharedSecretA, *SharedSecretB;
     PCurveIsogenyStruct CurveIsogeny = {0};
     CRYPTO_STATUS Status = CRYPTO_SUCCESS;
@@ -51,8 +51,8 @@ CRYPTO_STATUS cryptotest_kex(PCurveIsogenyStaticData CurveIsogenyData)
     bool passed = true;
 
     // Allocating memory for private keys, public keys and shared secrets
-    PrivateKeyA = (unsigned char*)calloc(1, obytes);        // One element in [1, order]
-    PrivateKeyB = (unsigned char*)calloc(1, obytes);
+    PrivateKeyA = (unsigned char*)calloc(2, obytes);        // One element in [1, order] XXX increased to nmemb=2
+    PrivateKeyB = (unsigned char*)calloc(2, obytes);        // XXX increased to nmemb=2
     PublicKeyA = (unsigned char*)calloc(1, 4*2*pbytes);     // Four elements in GF(p^2)
     PublicKeyB = (unsigned char*)calloc(1, 4*2*pbytes);
     SharedSecretA = (unsigned char*)calloc(1, 2*pbytes);    // One element in GF(p^2)
@@ -208,8 +208,8 @@ CRYPTO_STATUS cryptorun_kex(PCurveIsogenyStaticData CurveIsogenyData)
     bool passed;
 
     // Allocating memory for private keys, public keys and shared secrets
-    PrivateKeyA = (unsigned char*)calloc(1, obytes);        // One element in [1, order]
-    PrivateKeyB = (unsigned char*)calloc(1, obytes);
+    PrivateKeyA = (unsigned char*)calloc(2, obytes);        // One element in [1, order] XXX: increased nmemb to 2
+    PrivateKeyB = (unsigned char*)calloc(2, obytes);        // XXX: increades nmemb to 2
     PublicKeyA = (unsigned char*)calloc(1, 4*2*pbytes);     // Four elements in GF(p^2)
     PublicKeyB = (unsigned char*)calloc(1, 4*2*pbytes);
     SharedSecretA = (unsigned char*)calloc(1, 2*pbytes);    // One element in GF(p^2)
@@ -960,7 +960,7 @@ int main(int argc, char *argv[])
 
 
     int rep;
-    for (rep=0; rep<10; rep++) {
+    for (rep=0; rep<1; rep++) {
 
         Status = cryptotest_kex(&CurveIsogeny_SIDHp751);       // Test elliptic curve isogeny system "SIDHp751"
         if (Status != CRYPTO_SUCCESS) {
@@ -983,7 +983,7 @@ int main(int argc, char *argv[])
 
         // Allocate space for keys
         unsigned char *PrivateKey, *PublicKey;
-        PrivateKey = (unsigned char*)calloc(1, obytes);        // One element in [1, order]
+        PrivateKey = (unsigned char*)calloc(2, obytes);        // One element in [1, order] XXX: increased nmemb to 2
         PublicKey = (unsigned char*)calloc(1, 4*2*pbytes);     // Four elements in GF(p^2)
 
         struct Signature sig;
