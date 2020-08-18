@@ -1,5 +1,5 @@
 /********************************************************************************************
-* SIDH: an efficient supersingular isogeny-based cryptography library for Diffie-Hellman key 
+* SIDH: an efficient supersingular isogeny-based cryptography library for Diffie-Hellman key
 *       exchange providing 128 bits of quantum security and 192 bits of classical security.
 *
 *    Copyright (c) Microsoft Corporation. All rights reserved.
@@ -7,7 +7,7 @@
 *
 * Abstract: elliptic curve and isogeny functions
 *
-*********************************************************************************************/ 
+*********************************************************************************************/
 
 #include "SIDH_internal.h"
 
@@ -17,8 +17,8 @@ void j_inv(f2elm_t A, f2elm_t C, f2elm_t jinv)
   // Input: A,C in GF(p^2).
   // Output: j=256*(A^2-3*C^2)^3/(C^4*(A^2-4*C^2)), which is j-invariant of Montgomery curve B*y^2=x^3+(A/C)*x^2+x or (equivalently) j-invariant of B'*y^2=C*x^3+A*x^2+C*x.
     f2elm_t t0, t1;
-    
-    fp2sqr751_mont(A, jinv);                           // jinv = A^2        
+
+    fp2sqr751_mont(A, jinv);                           // jinv = A^2
     fp2sqr751_mont(C, t1);                             // t1 = C^2
     fp2add751(t1, t1, t0);                             // t0 = t1+t1
     fp2sub751(jinv, t0, t0);                           // t0 = jinv-t0
@@ -32,7 +32,7 @@ void j_inv(f2elm_t A, f2elm_t C, f2elm_t jinv)
     fp2mul751_mont(t0, t1, t0);                        // t0 = t0*t1
     fp2add751(t0, t0, t0);                             // t0 = t0+t0
     fp2add751(t0, t0, t0);                             // t0 = t0+t0
-    fp2inv751_mont(jinv);                              // jinv = 1/jinv 
+    fp2inv751_mont(jinv);                              // jinv = 1/jinv
     fp2mul751_mont(jinv, t0, jinv);                    // jinv = t0*jinv
 }
 
@@ -40,7 +40,7 @@ void j_inv(f2elm_t A, f2elm_t C, f2elm_t jinv)
 void xDBLADD(point_proj_t P, point_proj_t Q, f2elm_t xPQ, f2elm_t A24)
 { // Simultaneous doubling and differential addition.
   // Input: projective Montgomery points P=(XP:ZP) and Q=(XQ:ZQ) such that xP=XP/ZP and xQ=XQ/ZQ, affine difference xPQ=x(P-Q) and Montgomery curve constant A24=(A+2)/4.
-  // Output: projective Montgomery points P <- 2*P = (X2P:Z2P) such that x(2P)=X2P/Z2P, and Q <- P+Q = (XQP:ZQP) such that = x(Q+P)=XQP/ZQP. 
+  // Output: projective Montgomery points P <- 2*P = (X2P:Z2P) such that x(2P)=X2P/Z2P, and Q <- P+Q = (XQP:ZQP) such that = x(Q+P)=XQP/ZQP.
     f2elm_t t0, t1, t2;
 
     fp2add751(P->X, P->Z, t0);                         // t0 = XP+ZP
@@ -69,14 +69,14 @@ void xDBL(point_proj_t P, point_proj_t Q, f2elm_t A24, f2elm_t C24)
   // Input: projective Montgomery x-coordinates P = (X1:Z1), where x1=X1/Z1 and Montgomery curve constant A24/C24=(A/C+2)/4.
   // Output: projective Montgomery x-coordinates Q = 2*P = (X2:Z2).
     f2elm_t t0, t1;
-    
+
     fp2sub751(P->X, P->Z, t0);                         // t0 = X1-Z1
     fp2add751(P->X, P->Z, t1);                         // t1 = X1+Z1
-    fp2sqr751_mont(t0, t0);                            // t0 = (X1-Z1)^2 
-    fp2sqr751_mont(t1, t1);                            // t1 = (X1+Z1)^2 
-    fp2mul751_mont(C24, t0, Q->Z);                     // Z2 = C24*(X1-Z1)^2   
+    fp2sqr751_mont(t0, t0);                            // t0 = (X1-Z1)^2
+    fp2sqr751_mont(t1, t1);                            // t1 = (X1+Z1)^2
+    fp2mul751_mont(C24, t0, Q->Z);                     // Z2 = C24*(X1-Z1)^2
     fp2mul751_mont(t1, Q->Z, Q->X);                    // X2 = C24*(X1-Z1)^2*(X1+Z1)^2
-    fp2sub751(t1, t0, t1);                             // t1 = (X1+Z1)^2-(X1-Z1)^2 
+    fp2sub751(t1, t0, t1);                             // t1 = (X1+Z1)^2-(X1-Z1)^2
     fp2mul751_mont(A24, t1, t0);                       // t0 = A24*[(X1+Z1)^2-(X1-Z1)^2]
     fp2add751(Q->Z, t0, Q->Z);                         // Z2 = A24*[(X1+Z1)^2-(X1-Z1)^2] + C24*(X1-Z1)^2
     fp2mul751_mont(Q->Z, t1, Q->Z);                    // Z2 = [A24*[(X1+Z1)^2-(X1-Z1)^2] + C24*(X1-Z1)^2]*[(X1+Z1)^2-(X1-Z1)^2]
@@ -89,10 +89,10 @@ void xDBLe(point_proj_t P, point_proj_t Q, f2elm_t A, f2elm_t C, int e)
   // Output: projective Montgomery x-coordinates P <- (2^e)*P.
     f2elm_t A24num, A24den;
     int i;
-    
-    fp2add751(C, C, A24num);                           
-    fp2add751(A24num, A24num, A24den);                    
-    fp2add751(A24num, A, A24num); 
+
+    fp2add751(C, C, A24num);
+    fp2add751(A24num, A24num, A24den);
+    fp2add751(A24num, A, A24num);
     copy_words((digit_t*)P, (digit_t*)Q, 2*2*NWORDS_FIELD);
 
     for (i = 0; i < e; i++) {
@@ -104,14 +104,14 @@ void xDBLe(point_proj_t P, point_proj_t Q, f2elm_t A, f2elm_t C, int e)
 void xADD(point_proj_t P, point_proj_t Q, f2elm_t xPQ)
 { // Differential addition.
   // Input: projective Montgomery points P=(XP:ZP) and Q=(XQ:ZQ) such that xP=XP/ZP and xQ=XQ/ZQ, and affine difference xPQ=x(P-Q).
-  // Output: projective Montgomery point P <- P+Q = (XQP:ZQP) such that = x(Q+P)=XQP/ZQP. 
+  // Output: projective Montgomery point P <- P+Q = (XQP:ZQP) such that = x(Q+P)=XQP/ZQP.
     f2elm_t t0, t1;
-    
+
     fp2add751(P->X, P->Z, t0);                         // t0 = XP+ZP
     fp2sub751(P->X, P->Z, t1);                         // t1 = XP-ZP
     fp2sub751(Q->X, Q->Z, P->X);                       // XP = XQ-ZQ
     fp2add751(Q->X, Q->Z, P->Z);                       // ZP = XQ+ZQ
-    fp2mul751_mont(t0, P->X, t0);                      // t0 = (XP+ZP)*(XQ-ZQ)                           
+    fp2mul751_mont(t0, P->X, t0);                      // t0 = (XP+ZP)*(XQ-ZQ)
     fp2mul751_mont(t1, P->Z, t1);                      // t1 = (XP-ZP)*(XQ+ZQ)
     fp2sub751(t0, t1, P->Z);                           // ZP = (XP+ZP)*(XQ-ZQ)-(XP-ZP)*(XQ+ZQ)
     fp2add751(t0, t1, P->X);                           // XP = (XP+ZP)*(XQ-ZQ)+(XP-ZP)*(XQ+ZQ)
@@ -128,14 +128,14 @@ void xDBL_basefield(point_basefield_proj_t P, point_basefield_proj_t Q)
     felm_t t0, t1;
 
     // NOTE: this function is fixed for A24=1, C24=2
-    
+
     fpsub751(P->X, P->Z, t0);                          // t0 = X1-Z1
     fpadd751(P->X, P->Z, t1);                          // t1 = X1+Z1
-    fpsqr751_mont(t0, t0);                             // t0 = (X1-Z1)^2 
-    fpsqr751_mont(t1, t1);                             // t1 = (X1+Z1)^2   
-    fpadd751(t0, t0, Q->Z);                            // Z2 = C24*(X1-Z1)^2 
+    fpsqr751_mont(t0, t0);                             // t0 = (X1-Z1)^2
+    fpsqr751_mont(t1, t1);                             // t1 = (X1+Z1)^2
+    fpadd751(t0, t0, Q->Z);                            // Z2 = C24*(X1-Z1)^2
     fpmul751_mont(t1, Q->Z, Q->X);                     // X2 = C24*(X1-Z1)^2*(X1+Z1)^2
-    fpsub751(t1, t0, t1);                              // t1 = (X1+Z1)^2-(X1-Z1)^2 
+    fpsub751(t1, t0, t1);                              // t1 = (X1+Z1)^2-(X1-Z1)^2
     fpadd751(Q->Z, t1, Q->Z);                          // Z2 = A24*[(X1+Z1)^2-(X1-Z1)^2] + C24*(X1-Z1)^2
     fpmul751_mont(Q->Z, t1, Q->Z);                     // Z2 = [A24*[(X1+Z1)^2-(X1-Z1)^2] + C24*(X1-Z1)^2]*[(X1+Z1)^2-(X1-Z1)^2]
 }
@@ -144,7 +144,7 @@ void xDBL_basefield(point_basefield_proj_t P, point_basefield_proj_t Q)
 void xDBLADD_basefield(point_basefield_proj_t P, point_basefield_proj_t Q, felm_t xPQ, felm_t A24)
 { // Simultaneous doubling and differential addition over the base field.
   // Input: projective Montgomery points P=(XP:ZP) and Q=(XQ:ZQ) such that xP=XP/ZP and xQ=XQ/ZQ, affine difference xPQ=x(P-Q) and Montgomery curve constant A24=(A+2)/4.
-  // Output: projective Montgomery points P <- 2*P = (X2P:Z2P) such that x(2P)=X2P/Z2P, and Q <- P+Q = (XQP:ZQP) such that = x(Q+P)=XQP/ZQP. 
+  // Output: projective Montgomery points P <- 2*P = (X2P:Z2P) such that x(2P)=X2P/Z2P, and Q <- P+Q = (XQP:ZQP) such that = x(Q+P)=XQP/ZQP.
     felm_t t0, t1, t2;
 
     // NOTE: this function is fixed for C24=2
@@ -168,7 +168,7 @@ void xDBLADD_basefield(point_basefield_proj_t P, point_basefield_proj_t Q, felm_
         fpmul751_mont(A24, t2, Q->X);                  // XQ = A24*[(XP+ZP)^2-(XP-ZP)^2]
         fpadd751(P->Z, Q->X, P->Z);                    // ZP = A24*[(XP+ZP)^2-(XP-ZP)^2]+C24*(XP-ZP)^2
     }
-    
+
     fpsub751(t0, t1, Q->Z);                            // ZQ = (XP+ZP)*(XQ-ZQ)-(XP-ZP)*(XQ+ZQ)
     fpadd751(t0, t1, Q->X);                            // XQ = (XP+ZP)*(XQ-ZQ)+(XP-ZP)*(XQ+ZQ)
     fpmul751_mont(P->Z, t2, P->Z);                     // ZP = [A24*[(XP+ZP)^2-(XP-ZP)^2]+C24*(XP-ZP)^2]*[(XP+ZP)^2-(XP-ZP)^2]
@@ -180,7 +180,7 @@ void xDBLADD_basefield(point_basefield_proj_t P, point_basefield_proj_t Q, felm_
 
 void ladder(felm_t x, digit_t* m, point_basefield_proj_t P, point_basefield_proj_t Q, felm_t A24, unsigned int order_bits, unsigned int order_fullbits, PCurveIsogenyStruct CurveIsogeny)
 { // The Montgomery ladder
-  // Inputs: the affine x-coordinate of a point P on E: B*y^2=x^3+A*x^2+x, 
+  // Inputs: the affine x-coordinate of a point P on E: B*y^2=x^3+A*x^2+x,
   //         scalar m
   //         curve constant A24 = (A+2)/4
   //         order_bits = subgroup order bitlength
@@ -200,14 +200,14 @@ void ladder(felm_t x, digit_t* m, point_basefield_proj_t P, point_basefield_proj
     for (i = order_fullbits-order_bits; i > 0; i--) {
         mp_shiftl1(m, owords);
     }
-    
+
     for (i = order_bits; i > 0; i--) {
         bit = (unsigned int)(m[owords-1] >> (RADIX-1));
         mp_shiftl1(m, owords);
         mask = 0-(digit_t)bit;
 
         swap_points_basefield(P, Q, mask);
-        xDBLADD_basefield(P, Q, x, A24);           // If bit=0 then P <- 2*P and Q <- P+Q, 
+        xDBLADD_basefield(P, Q, x, A24);           // If bit=0 then P <- 2*P and Q <- P+Q,
         swap_points_basefield(P, Q, mask);         // else if bit=1 then Q <- 2*Q and P <- P+Q
     }
 }
@@ -215,7 +215,7 @@ void ladder(felm_t x, digit_t* m, point_basefield_proj_t P, point_basefield_proj
 
 CRYPTO_STATUS BigMont_ladder(unsigned char* x, digit_t* m, unsigned char* xout, PCurveIsogenyStruct CurveIsogeny)
 { // BigMont's scalar multiplication using the Montgomery ladder
-  // Inputs: x, the affine x-coordinate of a point P on BigMont: y^2=x^3+A*x^2+x, 
+  // Inputs: x, the affine x-coordinate of a point P on BigMont: y^2=x^3+A*x^2+x,
   //         scalar m.
   // Output: xout, the affine x-coordinate of m*(x:1)
   // CurveIsogeny must be set up in advance using SIDH_curve_initialize().
@@ -223,10 +223,10 @@ CRYPTO_STATUS BigMont_ladder(unsigned char* x, digit_t* m, unsigned char* xout, 
     digit_t scalar[BIGMONT_NWORDS_ORDER];
     felm_t X, A24 = {0};
 
-    A24[0] = (digit_t)CurveIsogeny->BigMont_A24; 
+    A24[0] = (digit_t)CurveIsogeny->BigMont_A24;
     to_mont(A24, A24);                               // Conversion to Montgomery representation
     to_mont((digit_t*)x, X);
-    
+
     copy_words(m, scalar, BIGMONT_NWORDS_ORDER);
     ladder(X, scalar, P1, P2, A24, BIGMONT_NBITS_ORDER, BIGMONT_MAXBITS_ORDER, CurveIsogeny);
 
@@ -239,10 +239,10 @@ CRYPTO_STATUS BigMont_ladder(unsigned char* x, digit_t* m, unsigned char* xout, 
 
 
 CRYPTO_STATUS secret_pt(point_basefield_t P, digit_t* m, unsigned int AliceOrBob, point_proj_t R, PCurveIsogenyStruct CurveIsogeny)
-{ // Computes key generation entirely in the base field by exploiting a 1-dimensional Montgomery ladder in the trace zero subgroup and 
+{ // Computes key generation entirely in the base field by exploiting a 1-dimensional Montgomery ladder in the trace zero subgroup and
   // recovering the y-coordinate for the addition. All operations in the base field GF(p).
-  // Input:  The scalar m, point P = (x,y) on E in the base field subgroup and Q = (x1,y1*i) on E in the trace-zero subgroup. 
-  //         x,y,x1,y1 are all in the base field.          
+  // Input:  The scalar m, point P = (x,y) on E in the base field subgroup and Q = (x1,y1*i) on E in the trace-zero subgroup.
+  //         x,y,x1,y1 are all in the base field.
   // Output: R = (RX0+RX1*i)/RZ0 (the x-coordinate of P+[m]Q).
     unsigned int nbits;
     point_basefield_t Q;
@@ -264,12 +264,12 @@ CRYPTO_STATUS secret_pt(point_basefield_t P, digit_t* m, unsigned int AliceOrBob
     } else {
         return CRYPTO_ERROR_INVALID_PARAMETER;
     }
-        
+
     // Setting curve constant to one (in standard representation), used in xDBLADD_basefield() in the ladder computation
     A24[0] = 1;
     copy_words(m, scalar, NWORDS_ORDER);
     ladder(Q->x, scalar, S, T, A24, nbits, CurveIsogeny->owordbits, CurveIsogeny);
-    
+
     //RX0 := (2*y*y1*Z0^2*Z1 + Z1*(X0*x1+Z0)*(X0+x1*Z0) - X1*(X0-x1*Z0)^2)*(2*y*y1*Z0^2*Z1 - Z1*(X0*x1+Z0)*(X0+x1*Z0) + X1*(X0-x1*Z0)^2) - 4*y1^2*Z0*Z1^2*(X0+x*Z0)*(X0-x*Z0)^2;
     //RX1 := 4*y*y1*Z0^2*Z1*(Z1*(X0*x1+Z0)*(X0+x1*Z0) - X1*(X0-x1*Z0)^2);
     //RZ0 := 4*y1^2*Z0^2*Z1^2*(X0-x*Z0)^2;
@@ -328,13 +328,13 @@ CRYPTO_STATUS ladder_3_pt(f2elm_t xP, f2elm_t xQ, f2elm_t xPQ, digit_t* m, unsig
     } else {
         return CRYPTO_ERROR_INVALID_PARAMETER;
     }
-   
+
     fpcopy751((digit_t*)CurveIsogeny->Montgomery_one, constant1[0]);
     fp2add751(constant1, constant1, constant1);                  // constant = 2
     fp2add751(A, constant1, A24num);
-    fp2div2_751(A24num, A24);  
+    fp2div2_751(A24num, A24);
     fp2div2_751(A24, A24);
-    
+
     // Initializing with the points (1:0), (xQ:1) and (xP:1)
     fpcopy751((digit_t*)CurveIsogeny->Montgomery_one, (digit_t*)U->X);
     fp2copy751(xQ, V->X);
@@ -342,12 +342,15 @@ CRYPTO_STATUS ladder_3_pt(f2elm_t xP, f2elm_t xQ, f2elm_t xPQ, digit_t* m, unsig
     fp2copy751(xP, W->X);
     fpcopy751((digit_t*)CurveIsogeny->Montgomery_one, (digit_t*)W->Z);
     fpzero751(W->Z[1]);
-    fpcopy751(m, temp_scalar);
-    
+    // XXX: use copy_words with only 48bytes to copy instead of fcopy751 which
+    // copys 96bytes
+    // fpcopy751(m, temp_scalar);
+    copy_words(m, temp_scalar, NWORDS_FIELD/2);
+
     for (i = fullbits-nbits; i > 0; i--) {
         mp_shiftl1(temp_scalar, NWORDS_ORDER);
     }
-    
+
     for (i = nbits; i > 0; i--) {
         bit = (unsigned int)(temp_scalar[NWORDS_ORDER-1] >> (RADIX-1));
         mp_shiftl1(temp_scalar, NWORDS_ORDER);
@@ -357,7 +360,7 @@ CRYPTO_STATUS ladder_3_pt(f2elm_t xP, f2elm_t xQ, f2elm_t xPQ, digit_t* m, unsig
         swap_points(U, V, mask);
         select_f2elm(xP, xQ, constant1, mask);
         select_f2elm(xQ, xPQ, constant2, mask);
-        xADD(W, U, constant1);                     // If bit=0 then W <- W+U, U <- 2*U and V <- U+V, 
+        xADD(W, U, constant1);                     // If bit=0 then W <- W+U, U <- 2*U and V <- U+V,
         xDBLADD(U, V, constant2, A24);             // else if bit=1 then U <- U+V, V <- 2*V and W <- V+W
         swap_points(U, V, mask);
         swap_points(W, U, mask);
@@ -370,9 +373,9 @@ CRYPTO_STATUS ladder_3_pt(f2elm_t xP, f2elm_t xQ, f2elm_t xPQ, digit_t* m, unsig
 void get_4_isog(point_proj_t P, f2elm_t A, f2elm_t C, f2elm_t* coeff)
 { // Computes the corresponding 4-isogeny of a projective Montgomery point (X4:Z4) of order 4.
   // Input:  projective point of order four P = (X4:Z4).
-  // Output: the 4-isogenous Montgomery curve with projective coefficient A/C and the 5 coefficients 
+  // Output: the 4-isogenous Montgomery curve with projective coefficient A/C and the 5 coefficients
   //         that are used to evaluate the isogeny at a point in eval_4_isog().
-    
+
     fp2add751(P->X, P->Z, coeff[0]);                   // coeff[0] = X4+Z4
     fp2sqr751_mont(P->X, coeff[3]);                    // coeff[3] = X4^2
     fp2sqr751_mont(P->Z, coeff[4]);                    // coeff[4] = Z4^2
@@ -390,10 +393,10 @@ void get_4_isog(point_proj_t P, f2elm_t A, f2elm_t C, f2elm_t* coeff)
 
 
 void eval_4_isog(point_proj_t P, f2elm_t* coeff)
-{ // Evaluates the isogeny at the point (X:Z) in the domain of the isogeny, given a 4-isogeny phi defined 
+{ // Evaluates the isogeny at the point (X:Z) in the domain of the isogeny, given a 4-isogeny phi defined
   // by the 5 coefficients in coeff (computed in the function four_isogeny_from_projective_kernel()).
   // Inputs: the coefficients defining the isogeny, and the projective point P = (X:Z).
-  // Output: the projective point P = phi(P) = (X:Z) in the codomain. 
+  // Output: the projective point P = phi(P) = (X:Z) in the codomain.
     f2elm_t t0, t1;
 
     fp2mul751_mont(P->X, coeff[0], P->X);              // X = coeff[0]*X
@@ -418,13 +421,13 @@ void eval_4_isog(point_proj_t P, f2elm_t* coeff)
 void first_4_isog(point_proj_t P, f2elm_t A, f2elm_t Aout, f2elm_t Cout, PCurveIsogenyStruct CurveIsogeny)
 { // Computes first 4-isogeny computed by Alice.
   // Inputs: projective point P = (X4:Z4) and curve constant A.
-  // Output: the projective point P = (X4:Z4) in the codomain and isogenous curve constant Aout/Cout.  
+  // Output: the projective point P = (X4:Z4) in the codomain and isogenous curve constant Aout/Cout.
     f2elm_t t0 = {0}, t1, t2;
-    
-    fpcopy751(CurveIsogeny->Montgomery_one, t0[0]); 
+
+    fpcopy751(CurveIsogeny->Montgomery_one, t0[0]);
     fpadd751(t0[0], t0[0], t0[0]);                     // t0 = 2 (in Montgomery domain)
     fp2sub751(A, t0, Cout);                            // Cout = A-2
-    fpadd751(t0[0], t0[0], t1[0]);                     
+    fpadd751(t0[0], t0[0], t1[0]);
     fpadd751(t0[0], t1[0], t0[0]);                     // t0 = 6 (in Montgomery domain)
     fp2add751(P->X, P->Z, t1);                         // t1 = X+Z
     fp2sub751(P->X, P->Z, t2);                         // t2 = X-Z
@@ -446,7 +449,7 @@ void xTPL(point_proj_t P, point_proj_t Q, f2elm_t A, f2elm_t C)
   // Input: projective Montgomery x-coordinates P = (X:Z), where x=X/Z and Montgomery curve constant A4=4*A.
   // Output: projective Montgomery x-coordinates Q = 3*P = (X3:Z3).
     f2elm_t t0, t1, t2, t3, t4, t5;
-    
+
     fp2add751(P->X, P->Z, t2);                         // t2 = X+Z
     fp2sqr751_mont(P->X, t0);                          // t0 = X^2
     fp2sqr751_mont(P->Z, t1);                          // t1 = Z^2
@@ -457,7 +460,7 @@ void xTPL(point_proj_t P, point_proj_t Q, f2elm_t A, f2elm_t C)
     fp2sub751(t2, t1, t2);                             // t2 = 2XZ = (X+Z)^2-X^2-Z^2
     fp2add751(t3, t4, t5);                             // t5 = C*X^2+C*Z^2
     fp2mul751_mont(t2, A, t2);                         // t2 = 2AXZ
-    fp2add751(t3, t3, t3);                             // t3 = 2C*X^2 
+    fp2add751(t3, t3, t3);                             // t3 = 2C*X^2
     fp2add751(t4, t4, t4);                             // t4 = 2C*Z^2
     fp2add751(t3, t2, t3);                             // t3 = 2C*X^2+2AXZ
     fp2add751(t4, t2, t4);                             // t4 = 2C*Z^2+2AXZ
@@ -483,7 +486,7 @@ void xTPLe(point_proj_t P, point_proj_t Q, f2elm_t A, f2elm_t C, int e)
   // Input: projective Montgomery x-coordinates P = (XP:ZP), such that xP=XP/ZP and Montgomery curve constant A/C.
   // Output: projective Montgomery x-coordinates P <- (3^e)*P.
     int i;
-      
+
     copy_words((digit_t*)P, (digit_t*)Q, 2*2*NWORDS_FIELD);
 
     for (i = 0; i < e; i++) {
@@ -495,7 +498,7 @@ void xTPLe(point_proj_t P, point_proj_t Q, f2elm_t A, f2elm_t C, int e)
 void get_3_isog(point_proj_t P, f2elm_t A, f2elm_t C)
 { // Computes the corresponding 3-isogeny of a projective Montgomery point (X3:Z3) of order 3.
   // Input:  projective point of order three P = (X3:Z3).
-  // Output: the 3-isogenous Montgomery curve with projective coefficient A/C. 
+  // Output: the 3-isogenous Montgomery curve with projective coefficient A/C.
     f2elm_t t0, t1;
 
     fp2sqr751_mont(P->X, t0);                          // t0 = X^2
@@ -507,10 +510,10 @@ void get_3_isog(point_proj_t P, f2elm_t A, f2elm_t C)
     fp2add751(t1, t1, C);                              // C = 2*t1
     fp2sub751(t0, t1, t1);                             // t1 = t0-t1
     fp2mul751_mont(t0, t1, t1);                        // t1 = t0*t1
-    fp2sub751(A, t1, A);                               // A = A-t1 
-    fp2sub751(A, t1, A);                               // A = A-t1 
-    fp2sub751(A, t1, A);                               // A = A-t1     
-    fp2mul751_mont(P->X, P->Z, t1);                    // t1 = X*Z    
+    fp2sub751(A, t1, A);                               // A = A-t1
+    fp2sub751(A, t1, A);                               // A = A-t1
+    fp2sub751(A, t1, A);                               // A = A-t1
+    fp2mul751_mont(P->X, P->Z, t1);                    // t1 = X*Z
     fp2mul751_mont(C, t1, C);                          // C = C*t1
 }
 
@@ -518,18 +521,18 @@ void get_3_isog(point_proj_t P, f2elm_t A, f2elm_t C)
 void eval_3_isog(point_proj_t P, point_proj_t Q)
 { // Computes the 3-isogeny R=phi(X:Z), given projective point (X3:Z3) of order 3 on a Montgomery curve and a point P = (X:Z).
   // Inputs: projective points P = (X3:Z3) and Q = (X:Z).
-  // Output: the projective point R = phi(Q) = (XX:ZZ). 
+  // Output: the projective point R = phi(Q) = (XX:ZZ).
     f2elm_t t0, t1, t2;
 
     fp2mul751_mont(P->X, Q->X, t0);                  // t0 = X3*X
     fp2mul751_mont(P->Z, Q->X, t1);                  // t1 = Z3*X
     fp2mul751_mont(P->Z, Q->Z, t2);                  // t2 = Z3*Z
-    fp2sub751(t0, t2, t0);                           // t0 = X3*X-Z3*Z          
+    fp2sub751(t0, t2, t0);                           // t0 = X3*X-Z3*Z
     fp2mul751_mont(P->X, Q->Z, t2);                  // t2 = X3*Z
     fp2sub751(t1, t2, t1);                           // t1 = Z3*X-X3*Z
     fp2sqr751_mont(t0, t0);                          // t0 = (X3*X-Z3*Z)^2
     fp2sqr751_mont(t1, t1);                          // t1 = (Z3*X-X3*Z)^2
-    fp2mul751_mont(Q->X, t0, Q->X);                  // X = X*(X3*X-Z3*Z)^2        
+    fp2mul751_mont(Q->X, t0, Q->X);                  // X = X*(X3*X-Z3*Z)^2
     fp2mul751_mont(Q->Z, t1, Q->Z);                  // Z = Z*(Z3*X-X3*Z)^2
 }
 
@@ -544,8 +547,8 @@ void inv_4_way(f2elm_t z1, f2elm_t z2, f2elm_t z3, f2elm_t z4)
     fp2mul751_mont(z3, z4, t1);                      // t1 = z3*z4
     fp2mul751_mont(t0, t1, t2);                      // t2 = z1*z2*z3*z4
     fp2inv751_mont(t2);                              // t2 = 1/(z1*z2*z3*z4)
-    fp2mul751_mont(t0, t2, t0);                      // t0 = 1/(z3*z4) 
-    fp2mul751_mont(t1, t2, t1);                      // t1 = 1/(z1*z2) 
+    fp2mul751_mont(t0, t2, t0);                      // t0 = 1/(z3*z4)
+    fp2mul751_mont(t1, t2, t1);                      // t1 = 1/(z1*z2)
     fp2mul751_mont(t0, z3, t2);                      // t2 = 1/z4
     fp2mul751_mont(t0, z4, z3);                      // z3 = 1/z3
     fp2copy751(t2, z4);                              // z4 = 1/z4
@@ -565,6 +568,6 @@ void distort_and_diff(felm_t xP, point_proj_t D, PCurveIsogenyStruct CurveIsogen
     fpsqr751_mont(xP, D->X[0]);	                     // XD = xP^2
     fpadd751(D->X[0], one, D->X[0]);                 // XD = XD+1
     fpcopy751(D->X[0], D->X[1]);                     // XD = XD*i
-    fpzero751(D->X[0]);          
+    fpzero751(D->X[0]);
     fpadd751(xP, xP, D->Z[0]);                       // ZD = xP+xP
 }

@@ -51,8 +51,8 @@ CRYPTO_STATUS cryptotest_kex(PCurveIsogenyStaticData CurveIsogenyData)
     bool passed = true;
 
     // Allocating memory for private keys, public keys and shared secrets
-    PrivateKeyA = (unsigned char*)calloc(2, obytes);        // One element in [1, order] XXX increased to nmemb=2
-    PrivateKeyB = (unsigned char*)calloc(2, obytes);        // XXX increased to nmemb=2
+    PrivateKeyA = (unsigned char*)calloc(1, obytes);        // One element in [1, order]
+    PrivateKeyB = (unsigned char*)calloc(1, obytes);
     PublicKeyA = (unsigned char*)calloc(1, 4*2*pbytes);     // Four elements in GF(p^2)
     PublicKeyB = (unsigned char*)calloc(1, 4*2*pbytes);
     SharedSecretA = (unsigned char*)calloc(1, 2*pbytes);    // One element in GF(p^2)
@@ -208,8 +208,8 @@ CRYPTO_STATUS cryptorun_kex(PCurveIsogenyStaticData CurveIsogenyData)
     bool passed;
 
     // Allocating memory for private keys, public keys and shared secrets
-    PrivateKeyA = (unsigned char*)calloc(2, obytes);        // One element in [1, order] XXX: increased nmemb to 2
-    PrivateKeyB = (unsigned char*)calloc(2, obytes);        // XXX: increades nmemb to 2
+    PrivateKeyA = (unsigned char*)calloc(1, obytes);        // One element in [1, order]
+    PrivateKeyB = (unsigned char*)calloc(1, obytes);
     PublicKeyA = (unsigned char*)calloc(1, 4*2*pbytes);     // Four elements in GF(p^2)
     PublicKeyB = (unsigned char*)calloc(1, 4*2*pbytes);
     SharedSecretA = (unsigned char*)calloc(1, 2*pbytes);    // One element in GF(p^2)
@@ -589,7 +589,7 @@ void *sign_thread(void *TPS) {
 
         //cycles1 = cpucycles();
 
-        tps->sig->Randoms[r] = (unsigned char*)calloc(2, tps->obytes); //XXX increased nmemb from 1 to 2
+        tps->sig->Randoms[r] = (unsigned char*)calloc(1, tps->obytes); // 48 bytes (384bit)
         tps->sig->Commitments1[r] = (unsigned char*)calloc(1, 2*tps->pbytes);
         tps->sig->Commitments2[r] = (unsigned char*)calloc(1, 2*tps->pbytes);
         tps->sig->psiS[r] = calloc(1, sizeof(point_proj));
@@ -960,7 +960,7 @@ int main(int argc, char *argv[])
 
 
     int rep;
-    for (rep=0; rep<1; rep++) {
+    for (rep=0; rep<10; rep++) {
 
         Status = cryptotest_kex(&CurveIsogeny_SIDHp751);       // Test elliptic curve isogeny system "SIDHp751"
         if (Status != CRYPTO_SUCCESS) {
@@ -983,7 +983,7 @@ int main(int argc, char *argv[])
 
         // Allocate space for keys
         unsigned char *PrivateKey, *PublicKey;
-        PrivateKey = (unsigned char*)calloc(2, obytes);        // One element in [1, order] XXX: increased nmemb to 2
+        PrivateKey = (unsigned char*)calloc(1, obytes);        // One element in [1, order]
         PublicKey = (unsigned char*)calloc(1, 4*2*pbytes);     // Four elements in GF(p^2)
 
         struct Signature sig;
@@ -1023,7 +1023,7 @@ int main(int argc, char *argv[])
         printf("Verifying .......... %10lld cycles\n\n", vcycles);
 
 
-        clear_words((void*)PrivateKey, NBYTES_TO_NWORDS(obytes));
+        clear_words((void*)PrivateKey, NBYTES_TO_NWORDS(2*obytes));
         clear_words((void*)PublicKey, NBYTES_TO_NWORDS(4*2*pbytes));
 
         free(PrivateKey);

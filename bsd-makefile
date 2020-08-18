@@ -1,7 +1,9 @@
 ####  Makefile for compilation on BSD  ####
 
 #OPT=-O3     # Optimization option by default
+#DEBUG=
 OPT=-O0
+DEBUG=-g
 
 COMPILER=clang
 
@@ -31,7 +33,7 @@ ADDITIONAL_SETTINGS=
 .endif
 
 cc=${COMPILER}
-CFLAGS=-g -c ${OPT} ${ADDITIONAL_SETTINGS} -D ${ARCHITECTURE} -D __BSD__ ${USE_ASM} ${USE_GENERIC}
+CFLAGS=${DEBUG} -c ${OPT} ${ADDITIONAL_SETTINGS} -D ${ARCHITECTURE} -D __BSD__ ${USE_ASM} ${USE_GENERIC}
 LDFLAGS=
 .if ${GENERIC} == "TRUE"
     EXTRA_OBJECTS=fp_generic.o
