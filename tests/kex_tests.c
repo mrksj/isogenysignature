@@ -1023,7 +1023,7 @@ int main(int argc, char *argv[])
         printf("Verifying .......... %10lld cycles\n\n", vcycles);
 
 
-        clear_words((void*)PrivateKey, NBYTES_TO_NWORDS(2*obytes));
+        clear_words((void*)PrivateKey, NBYTES_TO_NWORDS(obytes));
         clear_words((void*)PublicKey, NBYTES_TO_NWORDS(4*2*pbytes));
 
         free(PrivateKey);
