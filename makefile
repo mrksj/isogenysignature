@@ -47,10 +47,14 @@ endif
 OBJECTS=kex.o ec_isogeny.o validate.o SIDH.o SIDH_setup.o fpx.o $(EXTRA_OBJECTS)
 OBJECTS_TEST=test_extras.o
 OBJECTS_KEX_TEST=kex_tests.o $(OBJECTS_TEST) $(OBJECTS)
-OBJECTS_ALL=$(OBJECTS) $(OBJECTS_KEX_TEST)
+OBJECTS_KEYGEN=keygen.o $(OBJECTS_TEST) $(OBJECTS)
+OBJECTS_ALL=$(OBJECTS) $(OBJECTS_KEYGEN)
 
 kex_test: $(OBJECTS_KEX_TEST)
 	$(CC) -lpthread -o kex_test $(OBJECTS_KEX_TEST) $(ARM_SETTING)
+
+keygen: $(OBJECTS_KEYGEN)
+	$(CC) -lpthread -o keygen $(OBJECTS_KEYGEN) $(ARM_SETTING)
 
 kex.o: kex.c SIDH_internal.h
 	$(CC) $(CFLAGS) kex.c
@@ -88,6 +92,9 @@ test_extras.o: tests/test_extras.c tests/test_extras.h
 
 kex_tests.o: tests/kex_tests.c SIDH.h
 	$(CC) $(CFLAGS) tests/kex_tests.c
+
+keygen.o: tests/keygen.c
+	$(CC) $(CFLAGS) tests/keygen.c
 
 .PHONY: clean
 

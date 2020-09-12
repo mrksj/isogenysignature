@@ -1,0 +1,304 @@
+==53558== Memcheck, a memory error detector
+==53558== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==53558== Using Valgrind-3.16.1 and LibVEX; rerun with -h for copyright info
+==53558== Command: ./kex_test
+==53558== 
+NUM_THREADS: 1
+
+
+TESTING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Key exchange tests ........................................... PASSED
+
+
+BENCHMARKING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Alice's key generation runs in ............................... 2505784563 cycles
+  Bob's key generation runs in ................................. 2916224292 cycles
+  Alice's public key validation runs in ........................ 3215840791 cycles
+  Bob's public key validation runs in .......................... 3477487197 cycles
+  Alice's shared key computation runs in ....................... 2366994066 cycles
+  Bob's shared key computation runs in ......................... 2817556939 cycles
+
+
+BENCHMARKING SIGNATURE run 1:
+
+KeyGen ............. 2909993665 cycles
+Signing ............ 1490943297164 cycles
+Verifying .......... 958021301889 cycles
+
+
+
+TESTING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Key exchange tests ........................................... PASSED
+
+
+BENCHMARKING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Alice's key generation runs in ............................... 2460841290 cycles
+  Bob's key generation runs in ................................. 2857501933 cycles
+  Alice's public key validation runs in ........................ 3147681884 cycles
+  Bob's public key validation runs in .......................... 3381792774 cycles
+  Alice's shared key computation runs in ....................... 2305982030 cycles
+  Bob's shared key computation runs in ......................... 2822060478 cycles
+
+
+BENCHMARKING SIGNATURE run 2:
+
+KeyGen ............. 2924586762 cycles
+Signing ............ 1292092949277 cycles
+Verifying .......... 919624799512 cycles
+
+
+
+TESTING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Key exchange tests ........................................... PASSED
+
+
+BENCHMARKING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Alice's key generation runs in ............................... 2442713087 cycles
+  Bob's key generation runs in ................................. 2845895979 cycles
+  Alice's public key validation runs in ........................ 3179192952 cycles
+  Bob's public key validation runs in .......................... 3753665531 cycles
+  Alice's shared key computation runs in ....................... 2891888859 cycles
+  Bob's shared key computation runs in ......................... 3384663749 cycles
+
+
+BENCHMARKING SIGNATURE run 3:
+
+KeyGen ............. 3361944984 cycles
+Signing ............ 1305024916643 cycles
+Verifying .......... 894225147035 cycles
+
+
+
+TESTING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Key exchange tests ........................................... PASSED
+
+
+BENCHMARKING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Alice's key generation runs in ............................... 2436442607 cycles
+  Bob's key generation runs in ................................. 2840665765 cycles
+  Alice's public key validation runs in ........................ 3140141041 cycles
+  Bob's public key validation runs in .......................... 3380329387 cycles
+  Alice's shared key computation runs in ....................... 2303819227 cycles
+  Bob's shared key computation runs in ......................... 2749845769 cycles
+
+
+BENCHMARKING SIGNATURE run 4:
+
+KeyGen ............. 2833223893 cycles
+Signing ............ 1292716285584 cycles
+Verifying .......... 915361054212 cycles
+
+
+
+TESTING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Key exchange tests ........................................... PASSED
+
+
+BENCHMARKING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Alice's key generation runs in ............................... 2444195798 cycles
+  Bob's key generation runs in ................................. 2853290403 cycles
+  Alice's public key validation runs in ........................ 3145995684 cycles
+  Bob's public key validation runs in .......................... 3384385254 cycles
+  Alice's shared key computation runs in ....................... 2302126319 cycles
+  Bob's shared key computation runs in ......................... 2753334485 cycles
+
+
+BENCHMARKING SIGNATURE run 5:
+
+KeyGen ............. 2840824473 cycles
+Signing ............ 1293268620374 cycles
+Verifying .......... 877741104008 cycles
+
+
+
+TESTING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Key exchange tests ........................................... PASSED
+
+
+BENCHMARKING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Alice's key generation runs in ............................... 2436141797 cycles
+  Bob's key generation runs in ................................. 2839415186 cycles
+  Alice's public key validation runs in ........................ 3136040734 cycles
+  Bob's public key validation runs in .......................... 3380219903 cycles
+  Alice's shared key computation runs in ....................... 2308706136 cycles
+  Bob's shared key computation runs in ......................... 2743734433 cycles
+
+
+BENCHMARKING SIGNATURE run 6:
+
+KeyGen ............. 2853638466 cycles
+Signing ............ 1294332961914 cycles
+Verifying .......... 888515433125 cycles
+
+
+
+TESTING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Key exchange tests ........................................... PASSED
+
+
+BENCHMARKING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Alice's key generation runs in ............................... 2500780832 cycles
+  Bob's key generation runs in ................................. 2894751697 cycles
+  Alice's public key validation runs in ........................ 3150081581 cycles
+  Bob's public key validation runs in .......................... 3384663742 cycles
+  Alice's shared key computation runs in ....................... 2310428768 cycles
+  Bob's shared key computation runs in ......................... 2744506753 cycles
+
+
+BENCHMARKING SIGNATURE run 7:
+
+KeyGen ............. 2845028366 cycles
+Signing ............ 1293069928008 cycles
+Verifying .......... 894853794738 cycles
+
+
+
+TESTING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Key exchange tests ........................................... PASSED
+
+
+BENCHMARKING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Alice's key generation runs in ............................... 2432523298 cycles
+  Bob's key generation runs in ................................. 2830699479 cycles
+  Alice's public key validation runs in ........................ 3134762155 cycles
+  Bob's public key validation runs in .......................... 3379757806 cycles
+  Alice's shared key computation runs in ....................... 2302617946 cycles
+  Bob's shared key computation runs in ......................... 2791596833 cycles
+
+
+BENCHMARKING SIGNATURE run 8:
+
+KeyGen ............. 2920136639 cycles
+Signing ............ 1295384751923 cycles
+Verifying .......... 888571506951 cycles
+
+
+
+TESTING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Key exchange tests ........................................... PASSED
+
+
+BENCHMARKING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Alice's key generation runs in ............................... 2426332471 cycles
+  Bob's key generation runs in ................................. 2827773939 cycles
+  Alice's public key validation runs in ........................ 3130451145 cycles
+  Bob's public key validation runs in .......................... 3381428307 cycles
+  Alice's shared key computation runs in ....................... 2303219355 cycles
+  Bob's shared key computation runs in ......................... 2749016818 cycles
+
+
+BENCHMARKING SIGNATURE run 9:
+
+KeyGen ............. 2864143872 cycles
+Signing ............ 1291189556634 cycles
+Verifying .......... 875262983335 cycles
+
+
+
+TESTING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Key exchange tests ........................................... PASSED
+
+
+BENCHMARKING ISOGENY-BASED KEY EXCHANGE 
+--------------------------------------------------------------------------------------------------------
+
+Curve isogeny system: SIDHp751 
+
+  Alice's key generation runs in ............................... 2438692256 cycles
+  Bob's key generation runs in ................................. 2843345983 cycles
+  Alice's public key validation runs in ........................ 3139389639 cycles
+  Bob's public key validation runs in .......................... 3385522263 cycles
+  Alice's shared key computation runs in ....................... 2300136656 cycles
+  Bob's shared key computation runs in ......................... 2756000446 cycles
+
+
+BENCHMARKING SIGNATURE run 10:
+
+KeyGen ............. 2828364286 cycles
+Signing ............ 1294265612401 cycles
+Verifying .......... 916211378128 cycles
+
+==53558== 
+==53558== HEAP SUMMARY:
+==53558==     in use at exit: 0 bytes in 0 blocks
+==53558==   total heap usage: 18,152 allocs, 18,152 frees, 8,808,188 bytes allocated
+==53558== 
+==53558== All heap blocks were freed -- no leaks are possible
+==53558== 
+==53558== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
