@@ -10,6 +10,8 @@
 #include "../keccak.c"
 #include "../sha256.c"
 #include <pthread.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 // Benchmark and test parameters
 #define BENCH_LOOPS       10      // Number of iterations per bench
@@ -70,7 +72,7 @@ int main(int argc, char *argv[])
     NUM_THREADS = 1;
     printf("NUM_THREADS: %d\n", NUM_THREADS);
 
-    FILE *private_key, *public_key;
+    int priv_fd, pub_fd;
 
     CRYPTO_STATUS Status = CRYPTO_SUCCESS;
 
@@ -89,8 +91,9 @@ int main(int argc, char *argv[])
     // Generate Keys and measure time
     cycles1 = cpucycles();
     Status = isogeny_keygen(&CurveIsogeny_SIDHp751, PrivateKey, PublicKey);
-    if (Status != CRYPTO_SUCCESS) {
-        printf("\n\n   Error detected: %s \n\n", 
+    if (Status != CRYPTO_SUCCESS)
+    {
+        printf("\n\n   Error detected: %s \n\n",
                 SIDH_get_error_message(Status));
         return EXIT_FAILURE;
     }
@@ -100,29 +103,28 @@ int main(int argc, char *argv[])
     printf("KeyGen ............. %10lld cycles\n", kgcycles);
 
     // Write generated keys to files
-    if((private_key = fopen("private.key", "w")) == NULL)
+    if((priv_fd = open("private.key", O_WRONLY, O_CREAT)) == -1)
     {
-        printf("Could not open private.key for writing\n");
+        perror("Could nor open private.key for writing");
         return EXIT_FAILURE;
     }
-    if (fputs(PrivateKey, private_key) <= 0) // causing "Invalid read of size 1"
+    if (write(priv_fd, PrivateKey, obytes) == -1)
     {
-        printf("Could not write PrivateKey to file\n");
-        return EXIT_FAILURE;
-    }    
-    fclose(private_key);
-    if ((public_key = fopen("public.key", "w")) == NULL)
-    {
-        printf("could not open public.key for writing\n");
+        perror("Could not write PrivateKey to file");
         return EXIT_FAILURE;
     }
-    if (fputs(PublicKey, public_key) <= 0) // causing "Invalid read of size 1"
+    close(priv_fd);
+    if ((pub_fd = open("public.key", O_WRONLY, O_CREAT)) == -1)
     {
-        printf("Could nor write PublicKey to file\n");
+        perror("Could not open public.key for writing");
         return EXIT_FAILURE;
     }
-    fclose(public_key);
-    
+    if (write(pub_fd, PublicKey, 4*2*pbytes) == -1)
+    {
+        perror("Could not write PublicKey to file");
+        return EXIT_FAILURE;
+    }
+    close(pub_fd);
 
 
     // Cleanup
