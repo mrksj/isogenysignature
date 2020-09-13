@@ -94,7 +94,7 @@ kex_tests.o: tests/kex_tests.c SIDH.h
 keygen.o: tests/keygen.c
 	$(CC) $(CFLAGS) tests/keygen.c
 
-keygen.o: tests/.signing_algorithm.c
+signing_algorithm.o: tests/signing_algorithm.c
 	$(CC) $(CFLAGS) tests/signing_algorithm.c
 
 .PHONY: clean
