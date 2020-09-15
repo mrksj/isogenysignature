@@ -4,3 +4,6 @@ kex_test.core
 tags
 ktrace.out
 malloc.out
+private.key
+public.key
+signature

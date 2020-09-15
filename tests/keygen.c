@@ -103,9 +103,10 @@ int main(int argc, char *argv[])
     printf("KeyGen ............. %10lld cycles\n", kgcycles);
 
     // Write generated keys to files
-    if((priv_fd = open("private.key", O_WRONLY, O_CREAT)) == -1)
+    if ((priv_fd = open("private.key", O_WRONLY | O_CREAT,
+        S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
     {
-        perror("Could nor open private.key for writing");
+        perror("Could not open private.key for writing");
         return EXIT_FAILURE;
     }
     if (write(priv_fd, PrivateKey, obytes) == -1)
@@ -114,7 +115,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     close(priv_fd);
-    if ((pub_fd = open("public.key", O_WRONLY, O_CREAT)) == -1)
+    if ((pub_fd = open("public.key", O_WRONLY | O_CREAT,
+        S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
     {
         perror("Could not open public.key for writing");
         return EXIT_FAILURE;

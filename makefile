@@ -49,7 +49,9 @@ OBJECTS_TEST=test_extras.o
 OBJECTS_KEX_TEST=kex_tests.o $(OBJECTS_TEST) $(OBJECTS)
 OBJECTS_KEYGEN=keygen.o $(OBJECTS_TEST) $(OBJECTS)
 OBJECTS_SIGNING=signing_algorithm.o $(OBJECTS_TEST) $(OBJECTS)
+OBJECTS_VERIFYING=verifying_algorithm.o $(OBJECTS_TEST) $(OBJECTS)
 OBJECTS_ALL=$(OBJECTS) $(OBJECTS_KEYGEN)
+OBJECTS_ALL=$(OBJECTS) $(OBJECTS_KEX_TEST) $(OBJECTS_KEYGEN) $(OBJECTS_SIGNING) $(OBJECTS_VERIFYING)
 
 kex_test: $(OBJECTS_KEX_TEST)
 	$(CC) -lpthread -o kex_test $(OBJECTS_KEX_TEST) $(ARM_SETTING)
@@ -58,7 +60,10 @@ keygen: $(OBJECTS_KEYGEN)
 	$(CC) -lpthread -o keygen $(OBJECTS_KEYGEN) $(ARM_SETTING)
 
 signing: $(OBJECTS_SIGNING)
-	$(CC) -lpthread -o keygen $(OBJECTS_SIGNING) $(ARM_SETTING)
+	$(CC) -lpthread -o signing $(OBJECTS_SIGNING) $(ARM_SETTING)
+
+verifying: $(OBJECTS_VERIFYING)
+	$(CC) -lpthread -o verifying $(OBJECTS_VERIFYING) $(ARM_SETTING)
 
 kex.o: kex.c SIDH_internal.h
 	$(CC) $(CFLAGS) kex.c
@@ -100,11 +105,14 @@ kex_tests.o: tests/kex_tests.c SIDH.h
 keygen.o: tests/keygen.c
 	$(CC) $(CFLAGS) tests/keygen.c
 
-keygen.o: tests/.signing_algorithm.c
+signing_algorithm.o: tests/signing_algorithm.c
 	$(CC) $(CFLAGS) tests/signing_algorithm.c
+
+verifying_algorithm.o: tests/verifying_algorithm.c
+	$(CC) $(CFLAGS) tests/verifying_algorithm.c
 
 .PHONY: clean
 
 clean:
-	rm kex_test fp_generic.o fp_x64.o fp_x64_asm.o $(OBJECTS_ALL)
+	rm kex_test keygen signing verifying fp_generic.o fp_x64.o fp_x64_asm.o $(OBJECTS_ALL)
 

@@ -289,6 +289,7 @@ void from_mont(felm_t ma, felm_t c);
 // Field inversion, a = a^-1 in GF(p751)
 void fpinv751_mont(felm_t a);
 
+unsigned int is_felm_zero(felm_t x);
 /************ GF(p^2) arithmetic functions *************/
     
 // Copy of a GF(p751^2) element, c = a
