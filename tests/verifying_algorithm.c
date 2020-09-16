@@ -35,11 +35,11 @@ hashdata(unsigned char *PublicKey, char *msg, unsigned int pbytes,
     memcpy(data + 4*2*pbytes, msg, MSG_LEN);
     int r;
     for (r=0; r<NUM_ROUNDS; r++) {
-        memcpy(data + (4*2*pbytes) + (r * 2*pbytes), comm1[r], 2*pbytes);
-        memcpy(data + (4*2*pbytes) + (NUM_ROUNDS * 2*pbytes) + (r * 2*pbytes),
+        memcpy(data + (4*2*pbytes) + (MSG_LEN) + (r * 2*pbytes), comm1[r], 2*pbytes);
+        memcpy(data + (4*2*pbytes) + (MSG_LEN) + (NUM_ROUNDS * 2*pbytes) + (r * 2*pbytes),
             comm2[r], 2*pbytes);
     }
-    memcpy(data + (4*2*pbytes) + (2 * NUM_ROUNDS * 2*pbytes), HashResp,
+    memcpy(data + (4*2*pbytes) + (MSG_LEN) + (2 * NUM_ROUNDS * 2*pbytes), HashResp,
         2 * NUM_ROUNDS * hlen);
 
     keccak(data, dlen, cHash, cHashLength);
@@ -143,7 +143,6 @@ void *verify_thread(void *TPV) {
                 verified = false;
                 printf("verifying E/<S> -> E/<R,S> failed\n");
             }
-            //XXX
             free(TempPubKey);
             free(TempSharSec);
 
@@ -185,7 +184,6 @@ void *verify_thread(void *TPV) {
                 verified = false;
                 printf("verifying E/<R> -> E/<R,S> failed\n");
             }
-            // XXX:
             free(TempPubKey);
             free(TempSharSec);
         }
@@ -266,6 +264,53 @@ cleanup:
     return Status;
 }
 
+int
+read_sigfile(struct Signature *sig, unsigned int pbytes, unsigned int obytes)
+{
+    int sig_fd;
+    unsigned int siglen = NUM_ROUNDS * (4*pbytes + obytes + sizeof(point_proj) +
+                                (NUM_ROUNDS * 32 * sizeof(uint8_t)));
+    unsigned char *sig_serialized;
+    sig_serialized = calloc(1, siglen);
+
+    unsigned int unitlen = 4*pbytes + obytes + sizeof(point_proj);
+    int r;
+
+
+    if ((sig_fd = open("signature", O_RDONLY)) == -1)
+    {
+        perror("Could not open signature file for reading");
+        return -1;
+    }
+    if ((read(sig_fd, (void *) sig_serialized, siglen)) == -1)
+    {
+        perror("Could not read from signature file");
+        return -1;
+    }
+
+    for (r = 0; r < NUM_ROUNDS; r++)
+    {
+        sig->Commitments1[r] = calloc(1, 2*pbytes);
+        sig->Commitments2[r] = calloc(1, 2*pbytes);
+        sig->Randoms[r] = calloc(1, obytes);
+        sig->psiS[r] = calloc(1, sizeof(point_proj));
+
+        memcpy(sig->Commitments1[r], sig_serialized + (r * unitlen), 2*pbytes);
+        memcpy(sig->Commitments2[r], sig_serialized + (r * unitlen) + 2*pbytes,
+            2*pbytes);
+        memcpy(sig->Randoms[r], sig_serialized + (r * unitlen) + 4*pbytes,
+            obytes);
+        memcpy(sig->psiS[r], sig_serialized + (r * unitlen) + 4*pbytes + obytes,
+            sizeof(point_proj));
+    }
+    sig->HashResp = calloc(1, 2*NUM_ROUNDS*32*sizeof(uint8_t));
+    memcpy(sig->HashResp, sig_serialized + (NUM_ROUNDS * unitlen),
+        2 * NUM_ROUNDS * 32 * sizeof(uint8_t));
+
+    free (sig_serialized);
+    return 0;
+
+}
 
 // Optional parameters: #threads, #rounds
 int main(int argc, char *argv[])
@@ -287,15 +332,11 @@ int main(int argc, char *argv[])
     unsigned long long cycles1, cycles2, vcycles;
     int pub_fd, sig_fd;
 
-    // Allocate space for keys
+    // Allocate space for public key
     unsigned char *PublicKey;
     PublicKey = (unsigned char*)calloc(1, 4*2*pbytes); // 4 elements in GF(p^2)
 
-    struct Signature *sig;
-    unsigned int siglen = NUM_ROUNDS * (4*pbytes + obytes + sizeof(point_proj) +
-                                (NUM_ROUNDS * 32 * sizeof(uint8_t)));
-    sig = calloc(1, siglen);
-    printf("siglen: %d\n", siglen);
+    struct Signature sig;
 
     // msg XXX: read from file or as commandlineparameter
     char *msg;
@@ -313,21 +354,15 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    if ((sig_fd = open("signature", O_RDONLY)) == -1)
+    // read signature from signature file
+    if ((read_sigfile(&sig, pbytes, obytes)) != 0)
     {
-        perror("Could not open signature file for reading");
+        perror("Could not read signature data from signature file");
         return EXIT_FAILURE;
     }
-    if ((read(sig_fd, (void *) &sig, siglen)) == -1)
-    {
-        perror("Could not read from signature file");
-        return EXIT_FAILURE;
-    }
-
-    printf("after opening all files\n");
 
     cycles1 = cpucycles();
-    Status = isogeny_verify(&CurveIsogeny_SIDHp751, PublicKey, sig, msg);
+    Status = isogeny_verify(&CurveIsogeny_SIDHp751, PublicKey, &sig, msg);
     if (Status != CRYPTO_SUCCESS) {
         printf("\n\n   Error detected: %s \n\n",
             SIDH_get_error_message(Status));
@@ -344,16 +379,15 @@ int main(int argc, char *argv[])
     free(PublicKey);
     free(msg);
 
-    int i;
-    free(sig);
-    // for(i=0; i<NUM_ROUNDS; i++)
-    // {
-    //     free(sig.Randoms[i]);
-    //     free(sig.Commitments1[i]);
-    //     free(sig.Commitments2[i]);
-    //     free(sig.psiS[i]);
-    // }
-    // free(sig.HashResp);
+    int r;
+    for(r=0; r<NUM_ROUNDS; r++)
+    {
+        free(sig.Randoms[r]);
+        free(sig.Commitments1[r]);
+        free(sig.Commitments2[r]);
+        free(sig.psiS[r]);
+    }
+    free(sig.HashResp);
 
     return EXIT_SUCCESS;
 }
