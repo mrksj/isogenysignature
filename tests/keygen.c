@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 // Benchmark and test parameters
 #define BENCH_LOOPS       10	// Number of iterations per bench
