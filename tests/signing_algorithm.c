@@ -36,7 +36,7 @@ pthread_mutex_t RLOCK;
 struct Signature
 {
     unsigned char *com[NUM_ROUNDS][2];
-    int *ch[NUM_ROUNDS];        //only safe ch_i,0 as ch_i,1 is always the opposite
+    int *ch[NUM_ROUNDS];        //only store ch_i,0 as ch_i,1 is always the opposite
     unsigned char *h[NUM_ROUNDS][2];
     unsigned char *resp[NUM_ROUNDS];
 };
@@ -166,7 +166,7 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
     unsigned int n, obytes = (CurveIsogenyData->owordbits + 7)/8;   // Number of bytes in an element in [1, order]
     PCurveIsogenyStruct CurveIsogeny = {0};
     unsigned long long cycles, cycles1, cycles2, totcycles=0;
-    struct Responses *resp;
+    struct Responses resp;
 
     CRYPTO_STATUS Status = CRYPTO_SUCCESS;
     bool passed;
@@ -190,7 +190,7 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
         printf("ERROR: mutex init failed\n");
         return 1;
     }
-    thread_params_sign tps = {&CurveIsogeny, PrivateKey, PublicKey, sig, resp, pbytes, n, obytes};
+    thread_params_sign tps = {&CurveIsogeny, PrivateKey, PublicKey, sig, &resp, pbytes, n, obytes};
 
     int t;
     for (t=0; t<NUM_THREADS; t++) {
@@ -214,16 +214,17 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
     for (r=0; r<NUM_ROUNDS; r++) {
         sig->h[r][0] = calloc(1, HashLength*sizeof(uint8_t));
         sig->h[r][1] = calloc(1, HashLength*sizeof(uint8_t));
-        if (sig->ch[r] == 0)
+        printf("*sig->ch[%d]: %d\n", r, *sig->ch[r]);
+        if (*sig->ch[r] == 0)
         {
-            keccak((uint8_t*)resp->R[r], obytes, sig->h[0][r], HashLength);
-            keccak((uint8_t*)resp->psiS[r], sizeof(point_proj),
-                    sig->h[1][r], HashLength);
+            keccak((uint8_t*)resp.R[r], obytes, sig->h[r][0], HashLength);
+            keccak((uint8_t*)resp.psiS[r], sizeof(point_proj),
+                    sig->h[r][1], HashLength);
         } else
         {
-            keccak((uint8_t*)resp->R[r], sizeof(point_proj), sig->h[1][r],
+            keccak((uint8_t*)resp.R[r], obytes, sig->h[r][1], HashLength);
+            keccak((uint8_t*)resp.psiS[r], sizeof(point_proj), sig->h[r][0],
                     HashLength);
-            keccak((uint8_t*)resp->psiS[r], obytes, sig->h[0][r], HashLength);
         }
     }
 
@@ -255,23 +256,27 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
         int i = r/8;
         int j = r%8;
 
+        //printf("cHash[%d]: %d\t", i, cHash[i]);
+        //printf("1 << j: %d\t", 1 << j);
+        int mask = 1 << j;
         int bit = cHash[i] & (1 << j);  //challenge bit
+        //printf("bit: %d\n", bit);
 
         if (bit == 0 && *sig->ch[r] == 0){
-            sig->resp[r] = resp->R[r];
+            sig->resp[r] = resp.R[r];
         }
         else if (bit == 0 && *sig->ch[r] == 1){
-            sig->resp[r] = (unsigned char *)resp->psiS[r];
+            sig->resp[r] = (unsigned char *)resp.psiS[r];
         }
-        else if (bit == 1 && *sig->ch[r] == 0){
-            sig->resp[r] = (unsigned char *)resp->psiS[r];
+        else if (bit != 0 && *sig->ch[r] == 0){
+            sig->resp[r] = (unsigned char *)resp.psiS[r];
         }
-        else if (bit == 1 && *sig->ch[r] == 1){
-            sig->resp[r] = resp->R[r];
+        else if (bit != 0 && *sig->ch[r] == 1){
+            sig->resp[r] = resp.R[r];
         }
         else{
             printf("bit and challenge combination not plausible:\n"
-                    "bit: %d\t challenge: %d", bit, *sig->ch[r]);
+                    "bit: %d\t challenge: %d\n", bit, *sig->ch[r]);
         }
     }
 

@@ -98,7 +98,7 @@ void *verify_thread(void *TPV) {
         int bit = tpv->cHash[i] & (1 << j);  //challenge bit
 
         if (bit == 0) {
-            //printf("round %d: bit 0 - ", r);
+            printf("round %d: bit 0 - ", r);
 
             // Check R, phi(R) has order 2^372 (suffices to check that the
             // random number is even)
@@ -147,7 +147,7 @@ void *verify_thread(void *TPV) {
             free(TempSharSec);
 
         } else {
-            //printf("round %d: bit 1 - ", r);
+            printf("round %d: bit 1 - ", r);
 
             // Check psi(S) has order 3^239 (need to triple it 239 times)
             point_proj_t triple = {0};
@@ -234,6 +234,10 @@ isogeny_verify(PCurveIsogenyStaticData CurveIsogenyData,
     hashdata(PublicKey, msg, pbytes, sig->Commitments1, sig->Commitments2, sig->HashResp,
         HashLength, DataLength, datastring, cHash, cHashLength);
 
+    printf("\nChallenge hash: ");
+    print_hash(cHash, cHashLength);
+
+    printf("\nhashed\n");
 
     // Run the verifying rounds
     pthread_t verify_threads[NUM_THREADS];
