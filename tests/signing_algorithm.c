@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 
 
@@ -25,19 +26,11 @@ int NUM_THREADS = 1;
 int CUR_ROUND = 0;
 pthread_mutex_t RLOCK;
 
-//struct Signature {
-//    unsigned char *Commitments1[NUM_ROUNDS];
-//    unsigned char *Commitments2[NUM_ROUNDS];
-//    unsigned char *HashResp;
-//    unsigned char *Randoms[NUM_ROUNDS];
-//    point_proj *psiS[NUM_ROUNDS];
-//};
-
 struct Signature
 {
     unsigned char *com[NUM_ROUNDS][2];      //2*NUM_ROUNDS*2*pbytes
     //only store ch_i,0 as ch_i,1 is always the opposite
-    int *ch[NUM_ROUNDS];                    //NUM_ROUNDS*sizeof(int)
+    uint8_t *ch[NUM_ROUNDS];                    //NUM_ROUNDS*sizeof(int)
     unsigned char *h[NUM_ROUNDS][2];        //2*NUM_ROUNDS*32*sizeof(uint8_t)
     unsigned char *resp[NUM_ROUNDS];        //*resplen
 };
@@ -87,15 +80,10 @@ void *sign_thread(void *TPS) {
         //cycles1 = cpucycles();
 
         tps->resp->R[r] = calloc(1, tps->obytes); // 48 bytes (384bit)
-        if (tps->resp->R[r] == NULL) perror("tps->resp->R[r] calloc");
         tps->resp->psiS[r] = calloc(1, sizeof(point_proj));
-        if (tps->resp->psiS[r] == NULL) perror("tps->resp->psiS[r] calloc");
         tps->sig->com[r][0] = calloc(1, 2*tps->pbytes);
-        if (tps->sig->com[r][0] == NULL) perror("tps->sig->com[r][0] calloc");
         tps->sig->com[r][1] = calloc(1, 2*tps->pbytes);
-        if (tps->sig->com[r][1] == NULL) perror("tps->sig->com[r][1] calloc");
         tps->sig->ch[r] = calloc(1, sizeof(uint8_t));
-        if (tps->sig->ch[r] == NULL) perror("tps->sig->ch[r] calloc");
 
         // Pick random point R and compute E/<R>
         f2elm_t A;
@@ -133,7 +121,7 @@ void *sign_thread(void *TPS) {
 
 void
 hashdata(unsigned char *PublicKey, char *msg, unsigned int pbytes,
-    unsigned char* com[NUM_ROUNDS][2], int* ch[NUM_ROUNDS],
+    unsigned char* com[NUM_ROUNDS][2], uint8_t* ch[NUM_ROUNDS],
     uint8_t* HashResp[NUM_ROUNDS][2], int hlen, int dlen, uint8_t *data,
     uint8_t *cHash, int cHashLength)
 {
@@ -151,8 +139,8 @@ hashdata(unsigned char *PublicKey, char *msg, unsigned int pbytes,
                 (NUM_ROUNDS*sizeof(uint8_t)) + (r*hlen*sizeof(uint8_t)),
                 HashResp[r][0], hlen*sizeof(uint8_t));
         memcpy(data + (4*2*pbytes) + (MSG_LEN) + (NUM_ROUNDS*2*2*pbytes) +
-                (NUM_ROUNDS*sizeof(uint8_t)) + (r*hlen*sizeof(uint8_t)) + 
-                hlen*sizeof(uint8_t), HashResp[r][0], hlen*sizeof(uint8_t));
+                (NUM_ROUNDS*sizeof(uint8_t)) + (r*hlen*sizeof(uint8_t)) +
+                hlen*sizeof(uint8_t), HashResp[r][1], hlen*sizeof(uint8_t));
     }
     keccak(data, dlen, cHash, cHashLength);
 }
@@ -209,7 +197,7 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
     // Commit to responses (hash)
     // h_i,j <-- G(resp_i,j)
     // if ch_i.0 == 0 then put (R,phi(R)) (resp[0][r]) in h[0][r],
-    // otherwise put psi(S) in h[0][r]. Put the other value in h[1][r]. 
+    // otherwise put psi(S) in h[0][r]. Put the other value in h[1][r].
     int HashLength = 32; //bytes
     for (r=0; r<NUM_ROUNDS; r++) {
         sig->h[r][0] = calloc(1, HashLength*sizeof(uint8_t));
@@ -225,16 +213,19 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
             keccak((uint8_t*)resp->psiS[r], sizeof(point_proj), sig->h[r][0],
                     HashLength);
         }
+        //printf("Round: %d com0:%02x com1:%02x ch:%d h0:%02x h1:%02x\n",
+        //        r, *sig->com[r][0], *sig->com[r][1], *sig->ch[r],
+        //        *sig->h[r][0], *sig->h[r][1]);
     }
 
     // Create challenge hash (by hashing all the commitments and HashResps)
     // J_1 || ... || J_2lambda = H(pk,m,(com_i)_i,(ch_i,j)_i,j,(h_i,j)_i,j)
     uint8_t *datastring, *cHash;
     // DataLength: pk, m, (com_i), (ch_i,j), (h_i,j)
-    int DataLength = (4*2*pbytes) + 
-                     MSG_LEN + 
+    int DataLength = (4*2*pbytes) +
+                     MSG_LEN +
                      (2 * NUM_ROUNDS * 2*pbytes) +
-                     (2 * NUM_ROUNDS * sizeof(uint8_t)) + 
+                     (2 * NUM_ROUNDS * sizeof(uint8_t)) +
                      (2 * NUM_ROUNDS * HashLength*sizeof(uint8_t));
     int cHashLength = NUM_ROUNDS/8;         //one char has 8 bit i guess
     datastring = calloc(1, DataLength);
@@ -254,7 +245,6 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
         int i = r/8;
         int j = r%8;
 
-        int mask = 1 << j;
         int bit = cHash[i] & (1 << j);  //challenge bit
 
         if (bit == 0 && *sig->ch[r] == 0){
@@ -295,7 +285,7 @@ write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes,
 {
     int sig_fd;
     unsigned int comlen = 2*NUM_ROUNDS*2*pbytes;
-    unsigned int chlen = NUM_ROUNDS*sizeof(int);
+    unsigned int chlen = NUM_ROUNDS*sizeof(uint8_t);
     unsigned int hlen = 2*NUM_ROUNDS*32*sizeof(uint8_t);
     unsigned int siglen = comlen + chlen + hlen + resplen;
     unsigned char *sig_serialized = calloc(1, siglen);
@@ -312,8 +302,8 @@ write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes,
         memcpy(sig_serialized + (r*4*pbytes), sig.com[r][0], 2*pbytes);
         memcpy(sig_serialized + (r*4*pbytes) + 2*pbytes, sig.com[r][1],
                 2*pbytes);
-        memcpy(sig_serialized + comlen + (r*sizeof(int)), sig.ch[r],
-                sizeof(int));
+        memcpy(sig_serialized + comlen + (r*sizeof(uint8_t)), sig.ch[r],
+                sizeof(uint8_t));
         memcpy(sig_serialized + comlen + chlen + (r*2*32*sizeof(uint8_t)),
                 sig.h[r][0], 32*sizeof(uint8_t));
         memcpy(sig_serialized + comlen + chlen + (r*2*32*sizeof(uint8_t) +
