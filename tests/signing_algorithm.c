@@ -80,7 +80,7 @@ void *sign_thread(void *TPS) {
 
         if (stop) break;
 
-        printf("round: %d\n", CUR_ROUND);
+        //printf("%d", CUR_ROUND);
 
 
         //cycles1 = cpucycles();
@@ -160,7 +160,7 @@ hashdata(unsigned char *PublicKey, char *msg, unsigned int pbytes,
 CRYPTO_STATUS
 isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
         unsigned char *PrivateKey, unsigned char *PublicKey,
-        struct Signature *sig, char *msg)
+        struct Signature *sig, char *msg, uint8_t *resplen)
 {
     unsigned int pbytes = (CurveIsogenyData->pwordbits + 7)/8;      // Number of bytes in a field element
     unsigned int n, obytes = (CurveIsogenyData->owordbits + 7)/8;   // Number of bytes in an element in [1, order]
@@ -214,7 +214,6 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
     for (r=0; r<NUM_ROUNDS; r++) {
         sig->h[r][0] = calloc(1, HashLength*sizeof(uint8_t));
         sig->h[r][1] = calloc(1, HashLength*sizeof(uint8_t));
-        printf("*sig->ch[%d]: %d\n", r, *sig->ch[r]);
         if (*sig->ch[r] == 0)
         {
             keccak((uint8_t*)resp.R[r], obytes, sig->h[r][0], HashLength);
@@ -249,36 +248,41 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
     printf("\nChallenge hash: ");
     print_hash(cHash, cHashLength);
 
-    printf("\nhashed\n");
-
+    *resplen = 0;
     for(r=0; r<NUM_ROUNDS; r++)
     {
         int i = r/8;
         int j = r%8;
 
-        //printf("cHash[%d]: %d\t", i, cHash[i]);
-        //printf("1 << j: %d\t", 1 << j);
         int mask = 1 << j;
         int bit = cHash[i] & (1 << j);  //challenge bit
-        //printf("bit: %d\n", bit);
 
         if (bit == 0 && *sig->ch[r] == 0){
             sig->resp[r] = resp.R[r];
+            *resplen += obytes;
+            printf("bit0 ch0 resplen:%d\n", *resplen);
         }
         else if (bit == 0 && *sig->ch[r] == 1){
             sig->resp[r] = (unsigned char *)resp.psiS[r];
+            *resplen += sizeof(point_proj);
+            printf("bit0 ch1 resplen:%d\n", *resplen);
         }
         else if (bit != 0 && *sig->ch[r] == 0){
             sig->resp[r] = (unsigned char *)resp.psiS[r];
+            *resplen += sizeof(point_proj);
+            printf("bit1 ch0 resplen:%d\n", *resplen);
         }
         else if (bit != 0 && *sig->ch[r] == 1){
             sig->resp[r] = resp.R[r];
+            *resplen += obytes;
+            printf("bit1 ch1 resplen:%d\n", *resplen);
         }
         else{
             printf("bit and challenge combination not plausible:\n"
                     "bit: %d\t challenge: %d\n", bit, *sig->ch[r]);
         }
     }
+    //printf("resplen: %d\n", *resplen);
 
 
 cleanup:
@@ -357,6 +361,7 @@ int main(int argc, char *argv[])
     unsigned int n, obytes = (CurveIsogeny_SIDHp751.owordbits + 7)/8;   // Number of bytes in an element in [1, order]
     unsigned long long cycles1, cycles2, scycles;
     int priv_fd, pub_fd;
+    uint8_t *resplen = calloc(1, sizeof(uint8_t));
 
     // Allocate space for keys
     unsigned char *PrivateKey, *PublicKey;
@@ -399,7 +404,7 @@ int main(int argc, char *argv[])
 
     // compute signature
     cycles1 = cpucycles();
-    Status = isogeny_sign(&CurveIsogeny_SIDHp751, PrivateKey, PublicKey, &sig, msg);
+    Status = isogeny_sign(&CurveIsogeny_SIDHp751, PrivateKey, PublicKey, &sig, msg, resplen);
     if (Status != CRYPTO_SUCCESS) {
         printf("\n\n   Error detected: %s \n\n", SIDH_get_error_message(Status));
         return false;
@@ -408,6 +413,7 @@ int main(int argc, char *argv[])
     scycles = cycles2 - cycles1;
 
     printf("Signing ............ %10lld cycles\n", scycles);
+    printf("resplen: %d\n", *resplen);
 
     // write signature to file
     //if ((write_sigfile(sig, pbytes, obytes)) != 0){
@@ -421,6 +427,7 @@ int main(int argc, char *argv[])
     free(PrivateKey);
     free(PublicKey);
     free(msg);
+    free(resplen);
 
 
     return EXIT_SUCCESS;
