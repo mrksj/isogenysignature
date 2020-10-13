@@ -35,10 +35,11 @@ pthread_mutex_t RLOCK;
 
 struct Signature
 {
-    unsigned char *com[NUM_ROUNDS][2];
-    int *ch[NUM_ROUNDS];        //only store ch_i,0 as ch_i,1 is always the opposite
-    unsigned char *h[NUM_ROUNDS][2];
-    unsigned char *resp[NUM_ROUNDS];
+    unsigned char *com[NUM_ROUNDS][2];      //2*NUM_ROUNDS*2*pbytes
+    //only store ch_i,0 as ch_i,1 is always the opposite
+    int *ch[NUM_ROUNDS];                    //NUM_ROUNDS*sizeof(int)
+    unsigned char *h[NUM_ROUNDS][2];        //2*NUM_ROUNDS*32*sizeof(uint8_t)
+    unsigned char *resp[NUM_ROUNDS];        //*resplen
 };
 
 struct Responses
@@ -80,7 +81,7 @@ void *sign_thread(void *TPS) {
 
         if (stop) break;
 
-        //printf("%d", CUR_ROUND);
+        printf("round: %d\n", CUR_ROUND);
 
 
         //cycles1 = cpucycles();
@@ -160,13 +161,12 @@ hashdata(unsigned char *PublicKey, char *msg, unsigned int pbytes,
 CRYPTO_STATUS
 isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
         unsigned char *PrivateKey, unsigned char *PublicKey,
-        struct Signature *sig, char *msg, uint8_t *resplen)
+        struct Signature *sig, char *msg, struct Responses *resp, unsigned int *resplen)
 {
     unsigned int pbytes = (CurveIsogenyData->pwordbits + 7)/8;      // Number of bytes in a field element
     unsigned int n, obytes = (CurveIsogenyData->owordbits + 7)/8;   // Number of bytes in an element in [1, order]
     PCurveIsogenyStruct CurveIsogeny = {0};
     unsigned long long cycles, cycles1, cycles2, totcycles=0;
-    struct Responses resp;
 
     CRYPTO_STATUS Status = CRYPTO_SUCCESS;
     bool passed;
@@ -190,7 +190,7 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
         printf("ERROR: mutex init failed\n");
         return 1;
     }
-    thread_params_sign tps = {&CurveIsogeny, PrivateKey, PublicKey, sig, &resp, pbytes, n, obytes};
+    thread_params_sign tps = {&CurveIsogeny, PrivateKey, PublicKey, sig, resp, pbytes, n, obytes};
 
     int t;
     for (t=0; t<NUM_THREADS; t++) {
@@ -216,13 +216,13 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
         sig->h[r][1] = calloc(1, HashLength*sizeof(uint8_t));
         if (*sig->ch[r] == 0)
         {
-            keccak((uint8_t*)resp.R[r], obytes, sig->h[r][0], HashLength);
-            keccak((uint8_t*)resp.psiS[r], sizeof(point_proj),
+            keccak((uint8_t*)resp->R[r], obytes, sig->h[r][0], HashLength);
+            keccak((uint8_t*)resp->psiS[r], sizeof(point_proj),
                     sig->h[r][1], HashLength);
         } else
         {
-            keccak((uint8_t*)resp.R[r], obytes, sig->h[r][1], HashLength);
-            keccak((uint8_t*)resp.psiS[r], sizeof(point_proj), sig->h[r][0],
+            keccak((uint8_t*)resp->R[r], obytes, sig->h[r][1], HashLength);
+            keccak((uint8_t*)resp->psiS[r], sizeof(point_proj), sig->h[r][0],
                     HashLength);
         }
     }
@@ -258,31 +258,27 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
         int bit = cHash[i] & (1 << j);  //challenge bit
 
         if (bit == 0 && *sig->ch[r] == 0){
-            sig->resp[r] = resp.R[r];
+            sig->resp[r] = resp->R[r];
             *resplen += obytes;
-            printf("bit0 ch0 resplen:%d\n", *resplen);
         }
         else if (bit == 0 && *sig->ch[r] == 1){
-            sig->resp[r] = (unsigned char *)resp.psiS[r];
+            sig->resp[r] = (unsigned char *)resp->psiS[r];
             *resplen += sizeof(point_proj);
-            printf("bit0 ch1 resplen:%d\n", *resplen);
         }
         else if (bit != 0 && *sig->ch[r] == 0){
-            sig->resp[r] = (unsigned char *)resp.psiS[r];
+            sig->resp[r] = (unsigned char *)resp->psiS[r];
             *resplen += sizeof(point_proj);
-            printf("bit1 ch0 resplen:%d\n", *resplen);
         }
         else if (bit != 0 && *sig->ch[r] == 1){
-            sig->resp[r] = resp.R[r];
+            sig->resp[r] = resp->R[r];
             *resplen += obytes;
-            printf("bit1 ch1 resplen:%d\n", *resplen);
         }
         else{
             printf("bit and challenge combination not plausible:\n"
                     "bit: %d\t challenge: %d\n", bit, *sig->ch[r]);
         }
     }
-    //printf("resplen: %d\n", *resplen);
+    printf("resplen: %d\n", *resplen);
 
 
 cleanup:
@@ -293,55 +289,64 @@ cleanup:
     return Status;
 }
 
-//int
-//write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes)
-//{
-//    int sig_fd;
-//    unsigned int siglen = NUM_ROUNDS * (4*pbytes + obytes + sizeof(point_proj) +
-//                                (NUM_ROUNDS * 32 * sizeof(uint8_t)));
-//    unsigned char *sig_serialized;
-//    sig_serialized = calloc(1, siglen);
-//
-//    // length of one signature unit consisting of
-//    // Commitments1[r], Commitments2[r], Randoms[r] and psiS
-//    unsigned int unitlen = 4*pbytes + obytes + sizeof(point_proj);
-//
-//    int r;
-//    for (r=0; r<NUM_ROUNDS; r++)
-//    {
-//        memcpy(sig_serialized + (r * (unitlen)), sig.Commitments1[r], 2 * pbytes);
-//        memcpy(sig_serialized + (r * unitlen) + 2*pbytes,
-//            sig.Commitments2[r], 2*pbytes);
-//        memcpy(sig_serialized + (r * unitlen) + 4*pbytes, sig.Randoms[r],
-//            obytes);
-//        memcpy(sig_serialized + (r * unitlen) + 4*pbytes + obytes,
-//            sig.psiS[r], sizeof(point_proj));
-//
-//        free(sig.Randoms[r]);
-//        free(sig.Commitments1[r]);
-//        free(sig.Commitments2[r]);
-//        free(sig.psiS[r]);
-//    }
-//    memcpy(sig_serialized + (NUM_ROUNDS * unitlen), sig.HashResp,
-//            2 * NUM_ROUNDS * 32 * sizeof(uint8_t));
-//    free(sig.HashResp);
-//
-//    if ((sig_fd = open("signature", O_WRONLY | O_CREAT,
-//                    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
-//    {
-//        perror("Could not open signature file for writing");
-//        return -1;
-//    }
-//
-//    if (write(sig_fd, sig_serialized, siglen) == -1) {
-//        perror("Could not write signature to file");
-//        return -1;
-//    }
-//
-//    free(sig_serialized);
-//
-//    return 0;
-//}
+int
+write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes,
+        struct Responses resp, unsigned int resplen)
+{
+    int sig_fd;
+    unsigned int comlen = 2*NUM_ROUNDS*2*pbytes;
+    unsigned int chlen = NUM_ROUNDS*sizeof(int);
+    unsigned int hlen = 2*NUM_ROUNDS*32*sizeof(uint8_t);
+    unsigned int siglen = comlen + chlen + hlen + resplen;
+    unsigned char *sig_serialized = calloc(1, siglen);
+
+    unsigned int act_resp_pos = 0;
+    int r;
+    for (r=0; r<NUM_ROUNDS; r++)
+    {
+        // if sig.resp[r] points to same location ad resp.R[r], it needs obytes
+        // space, otherwise it needs sizeof(point_proj) bytes space (384)
+        int single_resp_r = sig.resp[r] == resp.R[r] ?
+            obytes : sizeof(point_proj);
+
+        memcpy(sig_serialized + (r*4*pbytes), sig.com[r][0], 2*pbytes);
+        memcpy(sig_serialized + (r*4*pbytes) + 2*pbytes, sig.com[r][1],
+                2*pbytes);
+        memcpy(sig_serialized + comlen + (r*sizeof(int)), sig.ch[r],
+                sizeof(int));
+        memcpy(sig_serialized + comlen + chlen + (r*2*32*sizeof(uint8_t)),
+                sig.h[r][0], 32*sizeof(uint8_t));
+        memcpy(sig_serialized + comlen + chlen + (r*2*32*sizeof(uint8_t) +
+                32*sizeof(uint8_t)), sig.h[r][1], 32*sizeof(uint8_t));
+        memcpy(sig_serialized + comlen + chlen + hlen + act_resp_pos , sig.resp[r], single_resp_r);
+        act_resp_pos += single_resp_r;
+
+
+        free(sig.com[r][0]);
+        free(sig.com[r][1]);
+        free(sig.ch[r]);
+        free(sig.h[r][0]);
+        free(sig.h[r][1]);
+        free(resp.R[r]);
+        free(resp.psiS[r]);
+    }
+
+    if ((sig_fd = open("signature", O_WRONLY | O_CREAT,
+                    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
+    {
+        perror("Could not open signature file for writing");
+        return -1;
+    }
+
+    if (write(sig_fd, sig_serialized, siglen) == -1) {
+        perror("Could not write signature to file");
+        return -1;
+    }
+
+    free(sig_serialized);
+
+    return 0;
+}
 
 
 // Optional parameters: #threads, #rounds
@@ -361,7 +366,7 @@ int main(int argc, char *argv[])
     unsigned int n, obytes = (CurveIsogeny_SIDHp751.owordbits + 7)/8;   // Number of bytes in an element in [1, order]
     unsigned long long cycles1, cycles2, scycles;
     int priv_fd, pub_fd;
-    uint8_t *resplen = calloc(1, sizeof(uint8_t));
+    unsigned int *resplen = calloc(1, sizeof(unsigned int));
 
     // Allocate space for keys
     unsigned char *PrivateKey, *PublicKey;
@@ -369,6 +374,7 @@ int main(int argc, char *argv[])
     PublicKey = (unsigned char*)calloc(1, 4*2*pbytes);     // Four elements in GF(p^2)
 
     struct Signature sig;
+    struct Responses resp;
 
     // msg XXX: read from file or as commandlineparameter
     char *msg;
@@ -404,7 +410,7 @@ int main(int argc, char *argv[])
 
     // compute signature
     cycles1 = cpucycles();
-    Status = isogeny_sign(&CurveIsogeny_SIDHp751, PrivateKey, PublicKey, &sig, msg, resplen);
+    Status = isogeny_sign(&CurveIsogeny_SIDHp751, PrivateKey, PublicKey, &sig, msg, &resp, resplen);
     if (Status != CRYPTO_SUCCESS) {
         printf("\n\n   Error detected: %s \n\n", SIDH_get_error_message(Status));
         return false;
@@ -416,9 +422,9 @@ int main(int argc, char *argv[])
     printf("resplen: %d\n", *resplen);
 
     // write signature to file
-    //if ((write_sigfile(sig, pbytes, obytes)) != 0){
-    //    perror("Could not write signature to file");
-    //}
+    if ((write_sigfile(sig, pbytes, obytes, resp, *resplen)) != 0){
+        perror("Could not write signature to file");
+    }
 
 
     clear_words((void*)PrivateKey, NBYTES_TO_NWORDS(obytes));
