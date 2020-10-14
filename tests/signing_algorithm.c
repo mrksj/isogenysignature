@@ -74,7 +74,7 @@ void *sign_thread(void *TPS) {
 
         if (stop) break;
 
-        printf("round: %d\n", CUR_ROUND);
+        //printf("round: %d\n", CUR_ROUND);
 
 
         //cycles1 = cpucycles();
@@ -246,7 +246,7 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
         int j = r%8;
 
         int bit = cHash[i] & (1 << j);  //challenge bit
-
+        //printf("round: %d\tcHash[i]: %02x\t1 << j: %d\tbit: %d\n", r,cHash[i],1<<j,bit);
         if (bit == 0 && *sig->ch[r] == 0){
             sig->resp[r] = resp->R[r];
             *resplen += obytes;
@@ -268,7 +268,6 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
                     "bit: %d\t challenge: %d\n", bit, *sig->ch[r]);
         }
     }
-    printf("resplen: %d\n", *resplen);
 
 
 cleanup:
@@ -310,7 +309,6 @@ write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes,
                 32*sizeof(uint8_t)), sig.h[r][1], 32*sizeof(uint8_t));
         memcpy(sig_serialized + comlen + chlen + hlen + act_resp_pos , sig.resp[r], single_resp_r);
         act_resp_pos += single_resp_r;
-
 
         free(sig.com[r][0]);
         free(sig.com[r][1]);
@@ -409,12 +407,12 @@ int main(int argc, char *argv[])
     scycles = cycles2 - cycles1;
 
     printf("Signing ............ %10lld cycles\n", scycles);
-    printf("resplen: %d\n", *resplen);
 
     // write signature to file
     if ((write_sigfile(sig, pbytes, obytes, resp, *resplen)) != 0){
         perror("Could not write signature to file");
     }
+    printf("resplen: %d", *resplen);
 
 
     clear_words((void*)PrivateKey, NBYTES_TO_NWORDS(obytes));
