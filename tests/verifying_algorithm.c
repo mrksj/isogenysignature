@@ -68,7 +68,7 @@ typedef struct thread_params_verify {
     unsigned char *PublicKey;
     struct Signature *sig;
 
-    uint8_t *ch;
+    uint8_t *bit;
 
     unsigned int pbytes;
     unsigned int n;
@@ -100,7 +100,8 @@ void *verify_thread(void *TPV) {
 
         //printf("\nround: %d ", CUR_ROUND);
 
-        if (tpv->ch[r] == 0) {
+        if (tpv->bit[r] == 0 && *tpv->sig->ch[r] == 0 ||
+                tpv->bit[r] == 1 && *tpv->sig->ch[r] == 1) {
             printf("round %d: bit 0 - ", r);
 
             // Check R, phi(R) has order 2^372 (suffices to check that the
@@ -200,7 +201,7 @@ void *verify_thread(void *TPV) {
 
 CRYPTO_STATUS
 isogeny_verify(PCurveIsogenyStaticData CurveIsogenyData,
-        unsigned char *PublicKey, struct Signature *sig, uint8_t *ch)
+        unsigned char *PublicKey, struct Signature *sig, uint8_t *bit)
 {
     // Number of bytes in a field element
     unsigned int pbytes = (CurveIsogenyData->pwordbits + 7)/8;
@@ -232,7 +233,7 @@ isogeny_verify(PCurveIsogenyStaticData CurveIsogenyData,
         printf("ERROR: mutex init failed\n");
         return 1;
     }
-    thread_params_verify tpv = {&CurveIsogeny, PublicKey, sig, ch, pbytes, n, obytes};
+    thread_params_verify tpv = {&CurveIsogeny, PublicKey, sig, bit, pbytes, n, obytes};
 
     int t;
     for (t=0; t<NUM_THREADS; t++) {
@@ -471,13 +472,13 @@ int main(int argc, char *argv[])
         perror("Could not generate ChallengeHash J_i || ... || J_2lambda");
     }
 
-    uint8_t *ch = calloc(NUM_ROUNDS, sizeof(uint8_t));
-    if ((parse_sigfile_rest(&sig, pbytes, obytes, cHash, ch)) != 0){
+    uint8_t *bit = calloc(NUM_ROUNDS, sizeof(uint8_t));
+    if ((parse_sigfile_rest(&sig, pbytes, obytes, cHash, bit)) != 0){
         perror("Could not parse rest of sigfile");
     }
 
     cycles1 = cpucycles();
-    Status = isogeny_verify(&CurveIsogeny_SIDHp751, PublicKey, &sig, ch);
+    Status = isogeny_verify(&CurveIsogeny_SIDHp751, PublicKey, &sig, bit);
     if (Status != CRYPTO_SUCCESS) {
         printf("\n\n   Error detected: %s \n\n",
             SIDH_get_error_message(Status));
