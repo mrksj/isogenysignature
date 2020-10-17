@@ -74,10 +74,6 @@ void *sign_thread(void *TPS) {
 
         if (stop) break;
 
-        //printf("round: %d\n", CUR_ROUND);
-
-
-        //cycles1 = cpucycles();
 
         tps->resp->R[r] = calloc(1, tps->obytes); // 48 bytes (384bit)
         tps->resp->psiS[r] = calloc(1, sizeof(point_proj));
@@ -106,13 +102,9 @@ void *sign_thread(void *TPS) {
             printf("Random point generation failed");
         }
 
+        // XXX: rand is an unsafe source of randomness
         // generate ch_i,j bit 0 or 1
-        *tps->sig->ch[r] = rand()%2;                  // ch_i,0
-
-        //cycles2 = cpucycles();
-        //cycles = cycles2 - cycles1;
-        //printf("ZKP round %d ran in ............ %10lld cycles\n", r, cycles);
-        //totcycles += cycles;
+        *tps->sig->ch[r] = rand()%2;
 
         free(TempPubKey);
     }
@@ -191,9 +183,6 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
         pthread_join(sign_threads[t], NULL);
     }
 
-    //printf("Average time for ZKP round ...... %10lld cycles\n", totcycles/NUM_ROUNDS);
-
-
     // Commit to responses (hash)
     // h_i,j <-- G(resp_i,j)
     // if ch_i.0 == 0 then put (R,phi(R)) (resp[0][r]) in h[0][r],
@@ -213,9 +202,6 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
             keccak((uint8_t*)resp->psiS[r], sizeof(point_proj), sig->h[r][0],
                     HashLength);
         }
-        //printf("Round: %d com0:%02x com1:%02x ch:%d h0:%02x h1:%02x\n",
-        //        r, *sig->com[r][0], *sig->com[r][1], *sig->ch[r],
-        //        *sig->h[r][0], *sig->h[r][1]);
     }
 
     // Create challenge hash (by hashing all the commitments and HashResps)
@@ -227,11 +213,9 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
                      (2 * NUM_ROUNDS * 2*pbytes) +
                      (2 * NUM_ROUNDS * sizeof(uint8_t)) +
                      (2 * NUM_ROUNDS * HashLength*sizeof(uint8_t));
-    int cHashLength = NUM_ROUNDS/8;         //one char has 8 bit i guess
+    int cHashLength = NUM_ROUNDS/8;
     datastring = calloc(1, DataLength);
     cHash = calloc(1, cHashLength);
-
-    //print_hash(cHash);
 
     hashdata(PublicKey, msg, pbytes, sig->com, sig->ch, sig->h, HashLength, DataLength,
             datastring, cHash, cHashLength);
@@ -246,7 +230,6 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
         int j = r%8;
 
         int bit = cHash[i] & (1 << j);  //challenge bit
-        //printf("round: %d\tcHash[i]: %02x\t1 << j: %d\tbit: %d\n", r,cHash[i],1<<j,bit);
         if (bit == 0 && *sig->ch[r] == 0){
             sig->resp[r] = resp->R[r];
             *resplen += obytes;
@@ -293,7 +276,7 @@ write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes,
     int r;
     for (r=0; r<NUM_ROUNDS; r++)
     {
-        // if sig.resp[r] points to same location ad resp.R[r], it needs obytes
+        // if sig.resp[r] points to same location as resp.R[r], it needs obytes
         // space, otherwise it needs sizeof(point_proj) bytes space (384)
         int single_resp_r = sig.resp[r] == resp.R[r] ?
             obytes : sizeof(point_proj);
@@ -307,7 +290,8 @@ write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes,
                 sig.h[r][0], 32*sizeof(uint8_t));
         memcpy(sig_serialized + comlen + chlen + (r*2*32*sizeof(uint8_t) +
                 32*sizeof(uint8_t)), sig.h[r][1], 32*sizeof(uint8_t));
-        memcpy(sig_serialized + comlen + chlen + hlen + act_resp_pos , sig.resp[r], single_resp_r);
+        memcpy(sig_serialized + comlen + chlen + hlen + act_resp_pos ,
+                sig.resp[r], single_resp_r);
         act_resp_pos += single_resp_r;
 
         free(sig.com[r][0]);
@@ -401,7 +385,7 @@ int main(int argc, char *argv[])
     Status = isogeny_sign(&CurveIsogeny_SIDHp751, PrivateKey, PublicKey, &sig, msg, &resp, resplen);
     if (Status != CRYPTO_SUCCESS) {
         printf("\n\n   Error detected: %s \n\n", SIDH_get_error_message(Status));
-        return false;
+        return EXIT_FAILURE;
     }
     cycles2 = cpucycles();
     scycles = cycles2 - cycles1;

@@ -57,7 +57,7 @@ struct Signature
 {
     unsigned char *com[NUM_ROUNDS][2];      //2*NUM_ROUNDS*2*pbytes
     //only store ch_i,0 as ch_i,1 is always the opposite
-    uint8_t *ch[NUM_ROUNDS];                    //NUM_ROUNDS*sizeof(int)
+    uint8_t *ch[NUM_ROUNDS];                //NUM_ROUNDS*sizeof(int)
     unsigned char *h[NUM_ROUNDS][2];        //2*NUM_ROUNDS*32*sizeof(uint8_t)
     unsigned char *resp[NUM_ROUNDS];        //*resplen
 };
@@ -98,19 +98,14 @@ void *verify_thread(void *TPV) {
 
         if (stop) break;
 
-        //printf("\nround: %d ", CUR_ROUND);
-
         if (tpv->bit[r] == 0 && *tpv->sig->ch[r] == 0 ||
                 tpv->bit[r] == 1 && *tpv->sig->ch[r] == 1) {
-            printf("round %d: bit 0 - ", r);
 
             // Check R, phi(R) has order 2^372 (suffices to check that the
             // random number is even)
             uint8_t lastbyte = ((uint8_t*) tpv->sig->resp[r])[0];
             if (lastbyte % 2) {
                 printf("ERROR: R, phi(R) are not full order\n");
-            } else {
-                //printf("checked order. ");
             }
 
             // Check kernels
@@ -151,7 +146,6 @@ void *verify_thread(void *TPV) {
             free(TempSharSec);
 
         } else {
-            printf("round %d: bit 1 - ", r);
 
             // Check psi(S) has order 3^239 (need to triple it 239 times)
             point_proj_t triple = {0};
@@ -296,9 +290,6 @@ gen_chash (unsigned char *sig_cut_serialized, struct Signature *sig,
         memcpy(sig->h[r][1], sig_cut_serialized + (NUM_ROUNDS*4*pbytes) +
                 (NUM_ROUNDS*sizeof(uint8_t)) + (r*2*32*sizeof(uint8_t)) +
                 (32*sizeof(uint8_t)), 32*sizeof(uint8_t));
-        //printf("Round: %d com0:%02x com1:%02x ch:%d h0:%02x h1:%02x\n",
-        //        r, *sig->com[r][0], *sig->com[r][1], *sig->ch[r],
-        //        *sig->h[r][0], *sig->h[r][1]);
     }
 
     // Create challenge hash (by hashing all the commitments and HashResps)
@@ -314,6 +305,7 @@ gen_chash (unsigned char *sig_cut_serialized, struct Signature *sig,
     datastring = calloc(1, DataLength);
     hashdata(PublicKey, msg, pbytes, sig->com, sig->ch, sig->h, HashLength, DataLength,
             datastring, cHash, cHashLength);
+    free(datastring);
 
     printf("\nChallenge hash: ");
     print_hash(cHash, cHashLength);
@@ -328,7 +320,7 @@ parse_sigfile_rest(struct Signature *sig, unsigned int pbytes,
     int sig_fd;
     int r;
     unsigned char *buf;
-    // offset: just read the responses form the file, that is start after
+    // offset: just read the responses form the file, that starts after
     // the bits used for com_i,j, ch_i,0, and h_i,j
     unsigned int offset = (2*NUM_ROUNDS*2*pbytes) +
                           (NUM_ROUNDS*sizeof(uint8_t)) +
@@ -342,8 +334,6 @@ parse_sigfile_rest(struct Signature *sig, unsigned int pbytes,
         int j = r%8;
 
         bit[r] = cHash[i] & (1 << j) ? 1 : 0;  //challenge bit
-        printf("bit[r]: %d\n", bit[r]);
-        //printf("round: %d\tcHash[i]: %02x\t1 << j: %d\tbit[r]: %d\n", r,cHash[i],1<<j,bit[r]);
         if (bit[r] == 0 && *sig->ch[r] == 0){
             len += obytes;
         }
@@ -363,9 +353,8 @@ parse_sigfile_rest(struct Signature *sig, unsigned int pbytes,
             return -1;
         }
     }
-    printf("len of restsig: %d\n", len);
-    buf = calloc(1, len);
 
+    buf = calloc(1, len);
 
     if ((sig_fd = open("signature", O_RDONLY)) == -1)
     {
@@ -407,6 +396,7 @@ parse_sigfile_rest(struct Signature *sig, unsigned int pbytes,
         }
     }
 
+    free(buf);
     return 0;
 }
 
@@ -453,11 +443,10 @@ int main(int argc, char *argv[])
     }
 
     //read signature data without resp as we have to calculate length of resp
-    //first
+    //first with content from signature data
     int siglen_cut = (2*NUM_ROUNDS*2*pbytes) + (NUM_ROUNDS*sizeof(uint8_t)) +
         (2*NUM_ROUNDS*32*sizeof(uint8_t));
     unsigned char *sig_cut_serialized = calloc(1, siglen_cut);
-    // read signature from signature file
     if ((read_sigfile_cut(siglen_cut, sig_cut_serialized)) != 0)
     {
         perror("Could not read signature data from signature file");
@@ -471,6 +460,7 @@ int main(int argc, char *argv[])
                     cHashLength)) != 0){
         perror("Could not generate ChallengeHash J_i || ... || J_2lambda");
     }
+    free(sig_cut_serialized);
 
     uint8_t *bit = calloc(NUM_ROUNDS, sizeof(uint8_t));
     if ((parse_sigfile_rest(&sig, pbytes, obytes, cHash, bit)) != 0){
@@ -494,20 +484,19 @@ int main(int argc, char *argv[])
 
     free(PublicKey);
     free(msg);
+    free(bit);
+    free(cHash);
 
-    //int r;
-    //for(r=0; r<NUM_ROUNDS; r++)
-    //{
-    //    free(sig.Randoms[r]);
-    //    free(sig.Commitments1[r]);
-    //    free(sig.Commitments2[r]);
-    //    free(sig.psiS[r]);
-    //}
-    //free(sig.HashResp);
+    int r;
+    for(r=0; r<NUM_ROUNDS; r++)
+    {
+        free(sig.com[r][0]);
+        free(sig.com[r][1]);
+        free(sig.ch[r]);
+        free(sig.h[r][0]);
+        free(sig.h[r][1]);
+        free(sig.resp[r]);
+    }
 
     return EXIT_SUCCESS;
 }
-
-
-
-
