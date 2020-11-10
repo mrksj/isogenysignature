@@ -326,7 +326,7 @@ parse_keys(unsigned char *PrivateKey, unsigned char *PublicKey, int priv_len,
 {
     int i, j;
     FILE *priv_fd, *pub_fd; 
-    char *line;
+    char *line = NULL;
     size_t n = 0;
     ssize_t read;
     char * ptr;
@@ -410,6 +410,7 @@ parse_keys(unsigned char *PrivateKey, unsigned char *PublicKey, int priv_len,
     fclose(pub_fd);
     free(line);
 
+    return 0;
 }
 
 
@@ -447,6 +448,7 @@ int main(int argc, char *argv[])
 
     if (parse_keys(PrivateKey, PublicKey, obytes, 4 * 2 * pbytes) != 0){
         printf("failed to parse keys\n");
+        return -1;
     }
     
     // compute signature
