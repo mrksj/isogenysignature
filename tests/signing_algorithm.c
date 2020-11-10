@@ -320,6 +320,98 @@ write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes,
     return 0;
 }
 
+int 
+parse_keys(unsigned char *PrivateKey, unsigned char *PublicKey, int priv_len,
+        int pub_len)
+{
+    int i, j;
+    FILE *priv_fd, *pub_fd; 
+    char *line;
+    size_t n = 0;
+    ssize_t read;
+    char * ptr;
+
+    if ((priv_fd=fopen("private.key", "r")) == NULL){
+        perror("failed to open private.key");
+    }
+
+    i = 0;
+    while ((read = getline(&line, &n, priv_fd)) != -1){
+        switch (i){
+            case 0:
+                if (strncmp(line, "-----BEGIN SISIG PRIVATE KEY-----", 33) != 0){
+                    perror("invalid private.key format");
+                    return -1;
+                }
+                break;
+            case 1:
+                if (read != 2 * priv_len + 1){
+                    perror("private key too short");
+                    return -1;
+                }
+                ptr = line;
+                for (j = 0; j < priv_len; j++){
+                    sscanf(ptr, "%2hhx", &PrivateKey[j]);
+                    ptr += 2;
+                }
+                break;
+            case 2:
+                if (strncmp(line, "-----END SISIG PRIVATE KEY-----", 31) != 0){
+                    perror("invalid private.key format");
+                    return -1;
+                }
+                break;
+            default:
+                perror("why do we read more than 3 lines?");
+                return -1;
+                break;
+        }
+        i += 1;
+    }
+    fclose(priv_fd);
+    
+    if ((pub_fd=fopen("public.key", "r")) == NULL){
+        perror("failed to open public.key");
+    }
+
+    i = 0;
+    while ((read = getline(&line, &n, pub_fd)) != -1){
+        switch (i){
+            case 0:
+                if (strncmp(line, "-----BEGIN SISIG PUBLIC KEY-----", 32) != 0){
+                    perror("invalid public.key format");
+                    return -1;
+                }
+                break;
+            case 1:
+                if (read != 2 * pub_len + 1){
+                    perror("public key too short");
+                    return -1;
+                }
+                ptr = line;
+                for (j = 0; j < pub_len; j++){
+                    sscanf(ptr, "%2hhx", &PublicKey[j]);
+                    ptr += 2;
+                }
+                break;
+            case 2:
+                if (strncmp(line, "-----END SISIG PUBLIC KEY-----", 30) != 0){
+                    perror("invalid public.key format");
+                    return -1;
+                }
+                break;
+            default:
+                perror("why do we read more than 3 lines?");
+                return -1;
+                break;
+        }
+        i += 1;
+    }
+    fclose(pub_fd);
+    free(line);
+
+}
+
 
 // Optional parameters: #threads, #rounds
 int main(int argc, char *argv[])
@@ -353,33 +445,10 @@ int main(int argc, char *argv[])
     msg = calloc(1, MSG_LEN);
     strncpy(msg, "Hi Bob!", MSG_LEN-1);
 
-    // read Keys from public.key and pricate.key
-    if ((priv_fd=open("private.key", O_RDONLY)) == -1)
-    {
-        perror("Could not open private.key for reading");
-        return EXIT_FAILURE;
+    if (parse_keys(PrivateKey, PublicKey, obytes, 4 * 2 * pbytes) != 0){
+        printf("failed to parse keys\n");
     }
-    if ((read(priv_fd, PrivateKey, obytes)) == -1)
-    {
-        perror("Could not read from private.key");
-        close(priv_fd);
-        return EXIT_FAILURE;
-    }
-    close(priv_fd);
-
-    if ((pub_fd=open("public.key", O_RDONLY)) == -1)
-    {
-        perror("Could not open public.key for reading");
-        return EXIT_FAILURE;
-    }
-    if ((read(pub_fd, PublicKey, 4*2*pbytes)) == -1)
-    {
-        perror("Could not read from public.key");
-        close(pub_fd);
-        return EXIT_FAILURE;
-    }
-    close(pub_fd);
-
+    
     // compute signature
     cycles1 = cpucycles();
     Status = isogeny_sign(&CurveIsogeny_SIDHp751, PrivateKey, PublicKey, &sig, msg, &resp, resplen);
@@ -396,7 +465,7 @@ int main(int argc, char *argv[])
     if ((write_sigfile(sig, pbytes, obytes, resp, *resplen)) != 0){
         perror("Could not write signature to file");
     }
-    printf("resplen: %d", *resplen);
+    printf("resplen: %d\n", *resplen);
 
 
     clear_words((void*)PrivateKey, NBYTES_TO_NWORDS(obytes));
@@ -408,7 +477,7 @@ int main(int argc, char *argv[])
     free(resplen);
 
 
-    return EXIT_SUCCESS;
+    return 0;
 }
 
 

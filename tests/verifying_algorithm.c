@@ -400,6 +400,59 @@ parse_sigfile_rest(struct Signature *sig, unsigned int pbytes,
     return 0;
 }
 
+int
+parse_pubkey(unsigned char *PublicKey, int pub_len)
+{
+    int i, j;
+    FILE *priv_fd, *pub_fd; 
+    char *line;
+    size_t n = 0;
+    ssize_t read;
+    char * ptr;
+
+
+    if ((pub_fd=fopen("public.key", "r")) == NULL){
+        perror("failed to open public.key");
+    }
+
+    i = 0;
+    while ((read = getline(&line, &n, pub_fd)) != -1){
+        switch (i){
+            case 0:
+                if (strncmp(line, "-----BEGIN SISIG PUBLIC KEY-----", 32) != 0){
+                    perror("invalid public.key format");
+                    return -1;
+                }
+                break;
+            case 1:
+                if (read != 2 * pub_len + 1){
+                    perror("public key too short");
+                    return -1;
+                }
+                ptr = line;
+                for (j = 0; j < pub_len; j++){
+                    sscanf(ptr, "%2hhx", &PublicKey[j]);
+                    ptr += 2;
+                }
+                break;
+            case 2:
+                if (strncmp(line, "-----END SISIG PUBLIC KEY-----", 30) != 0){
+                    perror("invalid public.key format");
+                    return -1;
+                }
+                break;
+            default:
+                perror("why do we read more than 3 lines?");
+                return -1;
+                break;
+        }
+        i += 1;
+    }
+    fclose(pub_fd);
+    free(line);
+
+}
+
 // Optional parameters: #threads, #rounds
 int main(int argc, char *argv[])
 {
@@ -431,15 +484,9 @@ int main(int argc, char *argv[])
     msg = calloc(1, MSG_LEN);
     strncpy(msg, "Hi Bob!", MSG_LEN-1);
 
-    if ((pub_fd = open("public.key", O_RDONLY)) == -1)
-    {
-        perror("Could not open public.key for reading");
-        return EXIT_FAILURE;
-    }
-    if ((read(pub_fd, PublicKey, 4*2*pbytes)) == -1)
-    {
-        perror("Could not read from public.key");
-        return EXIT_FAILURE;
+    if (parse_pubkey(PublicKey, 4 * 2 * pbytes) != 0){
+        perror("failed to read PublicKey");
+        return -1;
     }
 
     //read signature data without resp as we have to calculate length of resp
@@ -450,7 +497,7 @@ int main(int argc, char *argv[])
     if ((read_sigfile_cut(siglen_cut, sig_cut_serialized)) != 0)
     {
         perror("Could not read signature data from signature file");
-        return EXIT_FAILURE;
+        return -1;
     }
 
     uint8_t *cHash;
@@ -498,5 +545,5 @@ int main(int argc, char *argv[])
         free(sig.resp[r]);
     }
 
-    return EXIT_SUCCESS;
+    return 0;
 }
