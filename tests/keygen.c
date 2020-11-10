@@ -74,12 +74,67 @@ CRYPTO_STATUS isogeny_keygen(PCurveIsogenyStaticData CurveIsogenyData,
     return Status;
 }
 
+void serialize_keys (unsigned char *priv_key, unsigned char *pub_key,
+        int priv_len, int pub_len)
+{
+    int i;
+    FILE *priv_fd, *pub_fd;
+    char *priv_key_str, *pub_key_str;
+    char *ptr;
+
+    priv_key_str = calloc(1, 2 * priv_len + 1); //each byte needs two byte in hex + \0
+    pub_key_str = calloc(1, 2 * pub_len + 1);
+    ptr = priv_key_str;
+    for (i = 0; i < priv_len; i++)
+    {
+        sprintf(ptr, "%02x", priv_key[i]);
+        ptr += 2;
+    }
+    priv_key_str[2*priv_len] = '\0';
+    ptr = pub_key_str;
+    for (i = 0; i < pub_len; i++)
+    {
+        sprintf(ptr, "%02x", pub_key[i]);
+        ptr += 2;
+    }
+    pub_key_str[2*pub_len] = '\0';
+    // Write generated keys to files
+    if ((priv_fd = fopen("private.key", "w")) == NULL) {
+	perror("Could not open private.key for writing");
+    }
+    if (fputs("-----BEGIN SISIG PRIVATE KEY-----\n", priv_fd) == EOF){
+        perror("failed writing private key to file");
+    }
+    if (fputs(priv_key_str, priv_fd) == EOF){
+        perror("failed writing private key to file");
+    }
+    if (fputs("\n-----END SISIG PRIVATE KEY-----\n", priv_fd) == EOF){
+        perror("failed writing private key to file");
+    }
+    fclose(priv_fd);
+    if ((pub_fd = fopen("public.key", "w")) == NULL) {
+	perror("Could not open public.key for writing");
+    }
+    if (fputs("-----BEGIN SISIG PUBLIC KEY-----\n", pub_fd) == EOF){
+        perror("failed writing public key to file");
+    }
+    if (fputs(pub_key_str, pub_fd) == EOF){
+        perror("failed writing public key to file");
+    }
+    if (fputs("\n-----END SISIG PUBLIC KEY-----\n", pub_fd) == EOF){
+        perror("failed writing public key to file");
+    }
+    fclose(pub_fd);
+
+    free(priv_key_str);
+    free(pub_key_str);
+}
+
 int main(int argc, char *argv[])
 {
     NUM_THREADS = 1;
     printf("NUM_THREADS: %d\n", NUM_THREADS);
-
-    int priv_fd, pub_fd;
+    srand(time(0));
 
     CRYPTO_STATUS Status = CRYPTO_SUCCESS;
 
@@ -94,7 +149,6 @@ int main(int argc, char *argv[])
     PrivateKey = calloc(1, obytes);	// One element in [1, order]
     PublicKey = calloc(1, 4 * 2 * pbytes);	// Four elements in GF(p^2)
 
-
     // Generate Keys and measure time
     cycles1 = cpucycles();
     Status = isogeny_keygen(&CurveIsogeny_SIDHp751, PrivateKey, PublicKey);
@@ -108,28 +162,7 @@ int main(int argc, char *argv[])
 
     printf("KeyGen ............. %10lld cycles\n", kgcycles);
 
-    // Write generated keys to files
-    if ((priv_fd = open("private.key", O_WRONLY | O_CREAT,
-			S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1) {
-	perror("Could not open private.key for writing");
-	return EXIT_FAILURE;
-    }
-    if (write(priv_fd, PrivateKey, obytes) == -1) {
-	perror("Could not write PrivateKey to file");
-	return EXIT_FAILURE;
-    }
-    close(priv_fd);
-    if ((pub_fd = open("public.key", O_WRONLY | O_CREAT,
-		       S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1) {
-	perror("Could not open public.key for writing");
-	return EXIT_FAILURE;
-    }
-    if (write(pub_fd, PublicKey, 4 * 2 * pbytes) == -1) {
-	perror("Could not write PublicKey to file");
-	return EXIT_FAILURE;
-    }
-    close(pub_fd);
-
+    serialize_keys(PrivateKey, PublicKey, obytes, 4 * 2 * pbytes);
 
     // Cleanup
     clear_words((void *) PrivateKey, NBYTES_TO_NWORDS(obytes));
