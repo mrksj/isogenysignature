@@ -1,29 +1,22 @@
-#include "../SIDH.h"
-#include "test_extras.h"
 #if (OS_TARGET != OS_BSD)
     #include <malloc.h>
 #endif
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <string.h>
 #include <limits.h>
-#include "../keccak.c"
-#include "../sha256.c"
 #include <pthread.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 
+#include "SIDH.h"
+#include "SIDH_internal.h"
+#include "tests/test_extras.h"
+#include "SISig.h"
+#include "keccak.h"
 
-
-// Benchmark and test parameters
-#define BENCH_LOOPS       10      // Number of iterations per bench
-#define TEST_LOOPS        10      // Number of iterations per test
-#define NUM_ROUNDS       248
-#define MSG_LEN         1024      // XXX: not so clean
-
-int NUM_THREADS = 1;
-int CUR_ROUND = 0;
 pthread_mutex_t RLOCK;
 
 struct Signature
@@ -53,10 +46,10 @@ typedef struct thread_params_sign {
     unsigned int obytes;
 } thread_params_sign;
 
-
 void *sign_thread(void *TPS) {
     CRYPTO_STATUS Status = CRYPTO_SUCCESS;
     thread_params_sign *tps = (thread_params_sign*) TPS;
+    int CUR_ROUND;
 
     int r=0;
 
@@ -111,38 +104,12 @@ void *sign_thread(void *TPS) {
 }
 
 
-void
-hashdata(unsigned char *PublicKey, char *msg, unsigned int pbytes,
-    unsigned char* com[NUM_ROUNDS][2], uint8_t* ch[NUM_ROUNDS],
-    uint8_t* HashResp[NUM_ROUNDS][2], int hlen, int dlen, uint8_t *data,
-    uint8_t *cHash, int cHashLength)
-{
-    memcpy(data, PublicKey, 4*2*pbytes);
-    memcpy(data + 4*2*pbytes, msg, MSG_LEN);
-    int r;
-    for (r=0; r<NUM_ROUNDS; r++) {
-        memcpy(data + (4*2*pbytes) + (MSG_LEN) + (r*2*2*pbytes), com[r][0],
-                2*pbytes);
-        memcpy(data + (4*2*pbytes) + (MSG_LEN) + (r*2*2*pbytes) + (2*pbytes),
-                com[r][1], 2*pbytes);
-        memcpy(data + (4*2*pbytes) + (MSG_LEN) + (NUM_ROUNDS*2*2*pbytes) +
-                (r*sizeof(uint8_t)), ch[r], sizeof(uint8_t));
-        memcpy(data + (4*2*pbytes) + (MSG_LEN) + (NUM_ROUNDS*2*2*pbytes) +
-                (NUM_ROUNDS*sizeof(uint8_t)) + (r*hlen*sizeof(uint8_t)),
-                HashResp[r][0], hlen*sizeof(uint8_t));
-        memcpy(data + (4*2*pbytes) + (MSG_LEN) + (NUM_ROUNDS*2*2*pbytes) +
-                (NUM_ROUNDS*sizeof(uint8_t)) + (r*hlen*sizeof(uint8_t)) +
-                hlen*sizeof(uint8_t), HashResp[r][1], hlen*sizeof(uint8_t));
-    }
-    keccak(data, dlen, cHash, cHashLength);
-}
-
-
 CRYPTO_STATUS
-isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
-        unsigned char *PrivateKey, unsigned char *PublicKey,
+isogeny_sign(unsigned char *PrivateKey, unsigned char *PublicKey,
         struct Signature *sig, char *msg, struct Responses *resp, unsigned int *resplen)
 {
+    int NUM_THREADS = 1;
+    PCurveIsogenyStaticData CurveIsogenyData;
     unsigned int pbytes = (CurveIsogenyData->pwordbits + 7)/8;      // Number of bytes in a field element
     unsigned int n, obytes = (CurveIsogenyData->owordbits + 7)/8;   // Number of bytes in an element in [1, order]
     PCurveIsogenyStruct CurveIsogeny = {0};
@@ -165,7 +132,6 @@ isogeny_sign(PCurveIsogenyStaticData CurveIsogenyData,
     // Run the ZKP rounds
     int r;
     pthread_t sign_threads[NUM_THREADS];
-    CUR_ROUND = 0;
     if (pthread_mutex_init(&RLOCK, NULL)) {
         printf("ERROR: mutex init failed\n");
         return 1;
@@ -413,75 +379,21 @@ parse_keys(unsigned char *PrivateKey, unsigned char *PublicKey, int priv_len,
     return 0;
 }
 
-
-// Optional parameters: #threads, #rounds
-int main(int argc, char *argv[])
+int SISig_P751_Sign (char *msg, unsigned char *signature,
+        unsigned char *PrivateKey, unsigned char *PublicKey)
 {
-    NUM_THREADS = 1;
-
-    if (argc > 1) {
-        NUM_THREADS = atoi(argv[1]);
-    }
-
-    printf("NUM_THREADS: %d\n", NUM_THREADS);
-
-    CRYPTO_STATUS Status = CRYPTO_SUCCESS;
-
-    unsigned int pbytes = (CurveIsogeny_SIDHp751.pwordbits + 7)/8;      // Number of bytes in a field element
-    unsigned int n, obytes = (CurveIsogeny_SIDHp751.owordbits + 7)/8;   // Number of bytes in an element in [1, order]
-    unsigned long long cycles1, cycles2, scycles;
-    int priv_fd, pub_fd;
+    struct Responses resp;
     unsigned int *resplen = calloc(1, sizeof(unsigned int));
 
-    // Allocate space for keys
-    unsigned char *PrivateKey, *PublicKey;
-    PrivateKey = (unsigned char*)calloc(1, obytes);        // One element in [1, order]
-    PublicKey = (unsigned char*)calloc(1, 4*2*pbytes);     // Four elements in GF(p^2)
 
-    struct Signature sig;
-    struct Responses resp;
-
-    // msg XXX: read from file or as commandlineparameter
-    char *msg;
-    msg = calloc(1, MSG_LEN);
-    strncpy(msg, "Hi Bob!", MSG_LEN-1);
-
-    if (parse_keys(PrivateKey, PublicKey, obytes, 4 * 2 * pbytes) != 0){
-        printf("failed to parse keys\n");
+    if(isogeny_sign(PrivateKey, PublicKey, (struct Signature *)signature, msg,
+                &resp, resplen) != 0)
         return -1;
-    }
-    
-    // compute signature
-    cycles1 = cpucycles();
-    Status = isogeny_sign(&CurveIsogeny_SIDHp751, PrivateKey, PublicKey, &sig, msg, &resp, resplen);
-    if (Status != CRYPTO_SUCCESS) {
-        printf("\n\n   Error detected: %s \n\n", SIDH_get_error_message(Status));
-        return EXIT_FAILURE;
-    }
-    cycles2 = cpucycles();
-    scycles = cycles2 - cycles1;
-
-    printf("Signing ............ %10lld cycles\n", scycles);
-
-    // write signature to file
-    if ((write_sigfile(sig, pbytes, obytes, resp, *resplen)) != 0){
-        perror("Could not write signature to file");
-    }
-    printf("resplen: %d\n", *resplen);
-
-
-    clear_words((void*)PrivateKey, NBYTES_TO_NWORDS(obytes));
-    clear_words((void*)PublicKey, NBYTES_TO_NWORDS(4*2*pbytes));
-
-    free(PrivateKey);
-    free(PublicKey);
-    free(msg);
-    free(resplen);
-
-
+    //not necessary but for debugging keep in inside
+    if(write_sigfile(*(struct Signature *)signature, OBYTES, PBYTES, resp,
+                *resplen) != 0)
+        return -1;
     return 0;
+
+    free(resplen);
 }
-
-
-
-

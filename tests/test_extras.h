@@ -20,8 +20,11 @@ extern "C" {
 
     
 #include "../SIDH_internal.h"
+#include "../keccak.h"
 
-    
+#define NUM_ROUNDS       248
+#define MSG_LEN          1024
+
 // Access system counter for benchmarking
 int64_t cpucycles(void);
 
@@ -52,6 +55,13 @@ void to_mont_basic(felm_t a, felm_t mc);
 // Conversion from Montgomery representation to standard representation
 void from_mont_basic(felm_t ma, felm_t c);
 
+void print_hash(unsigned char hash[], int size);
+
+void
+hashdata(unsigned char *PublicKey, char *msg, unsigned int pbytes,
+    unsigned char* com[NUM_ROUNDS][2], uint8_t* ch[NUM_ROUNDS],
+    uint8_t* HashResp[NUM_ROUNDS][2], int hlen, int dlen, uint8_t *data,
+    uint8_t *cHash, int cHashLength);
 
 #ifdef __cplusplus
 }

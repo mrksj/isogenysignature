@@ -46,15 +46,15 @@ endif
 endif
 OBJECTS=kex.o ec_isogeny.o validate.o SIDH.o SIDH_setup.o fpx.o $(EXTRA_OBJECTS)
 OBJECTS_TEST=test_extras.o
-OBJECTS_KEX_TEST=kex_tests.o $(OBJECTS_TEST) $(OBJECTS)
 OBJECTS_KEYGEN=keygen.o $(OBJECTS_TEST) $(OBJECTS)
-OBJECTS_SIGNING=signing_algorithm.o $(OBJECTS_TEST) $(OBJECTS)
-OBJECTS_VERIFYING=verifying_algorithm.o $(OBJECTS_TEST) $(OBJECTS)
+OBJECTS_SIGNING=signing.o $(OBJECTS_TEST) $(OBJECTS)
+OBJECTS_VERIFY=verify.o $(OBJECTS_TEST) $(OBJECTS)
+OBJECTS_SIGNATURESCHEME=signature_scheme.o keygen.o signing.o verify.o keccak.o $(OBJECTS_TEST) $(OBJECTS)
 OBJECTS_ALL=$(OBJECTS) $(OBJECTS_KEYGEN)
-OBJECTS_ALL=$(OBJECTS) $(OBJECTS_KEX_TEST) $(OBJECTS_KEYGEN) $(OBJECTS_SIGNING) $(OBJECTS_VERIFYING)
+OBJECTS_ALL=$(OBJECTS) $(OBJECTS_KEX_TEST) $(OBJECTS_KEYGEN) $(OBJECTS_SIGNING) $(OBJECTS_VERIFY)
 
-kex_test: $(OBJECTS_KEX_TEST)
-	$(CC) -lpthread -o kex_test $(OBJECTS_KEX_TEST) $(ARM_SETTING)
+signature_scheme: $(OBJECTS_SIGNATURESCHEME)
+	$(CC) -lpthread -o signature_scheme $(OBJECTS_SIGNATURESCHEME) $(ARM_SETTING)
 
 keygen: $(OBJECTS_KEYGEN)
 	$(CC) -lpthread -o keygen $(OBJECTS_KEYGEN) $(ARM_SETTING)
@@ -62,8 +62,8 @@ keygen: $(OBJECTS_KEYGEN)
 signing: $(OBJECTS_SIGNING)
 	$(CC) -lpthread -o signing $(OBJECTS_SIGNING) $(ARM_SETTING)
 
-verifying: $(OBJECTS_VERIFYING)
-	$(CC) -lpthread -o verifying $(OBJECTS_VERIFYING) $(ARM_SETTING)
+verifying: $(OBJECTS_VERIFY)
+	$(CC) -lpthread -o verify $(OBJECTS_VERIFY) $(ARM_SETTING)
 
 kex.o: kex.c SIDH_internal.h
 	$(CC) $(CFLAGS) kex.c
@@ -96,23 +96,26 @@ ifeq "$(ARCH)" "x64"
 endif
 endif
 
-test_extras.o: tests/test_extras.c tests/test_extras.h
+test_extras.o: tests/test_extras.c
 	$(CC) $(CFLAGS) tests/test_extras.c
 
-kex_tests.o: tests/kex_tests.c SIDH.h
-	$(CC) $(CFLAGS) tests/kex_tests.c
+keygen.o: keygen.c SISig.h
+	$(CC) $(CFLAGS) keygen.c
 
-keygen.o: tests/keygen.c
-	$(CC) $(CFLAGS) tests/keygen.c
+signing_algorithm.o: signing.c SISig.h
+	$(CC) $(CFLAGS) signing.c
 
-signing_algorithm.o: tests/signing_algorithm.c
-	$(CC) $(CFLAGS) tests/signing_algorithm.c
+verifying_algorithm.o: verify.c SISig.h
+	$(CC) $(CFLAGS) verify.c
 
-verifying_algorithm.o: tests/verifying_algorithm.c
-	$(CC) $(CFLAGS) tests/verifying_algorithm.c
+signature_scheme.o: tests/signature_scheme.c SISig.h
+	$(CC) $(CFLAGS) tests/signature_scheme.c
+
+keccak.o: keccak.c
+	$(CC) $(CFLAGS) keccak.c
 
 .PHONY: clean
 
 clean:
-	rm kex_test keygen signing verifying fp_generic.o fp_x64.o fp_x64_asm.o $(OBJECTS_ALL)
+	rm signature_scheme keccak.o sha256.o signature_scheme.o fp_generic.o fp_x64.o fp_x64_asm.o $(OBJECTS_ALL)
 

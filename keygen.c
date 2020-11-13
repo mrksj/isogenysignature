@@ -1,5 +1,3 @@
-#include "../SIDH.h"
-#include "test_extras.h"
 #if (OS_TARGET != OS_BSD)
 #include <malloc.h>
 #endif
@@ -7,28 +5,22 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <limits.h>
-#include "../keccak.c"
-#include "../sha256.c"
 #include <pthread.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 
-// Benchmark and test parameters
-#define BENCH_LOOPS       10	// Number of iterations per bench
-#define TEST_LOOPS        10	// Number of iterations per test
-#define NUM_ROUNDS       248
+#include "SIDH.h"
+#include "tests/test_extras.h"
+#include "SISig.h"
 
-int NUM_THREADS = 1;
-int CUR_ROUND = 0;
-pthread_mutex_t RLOCK;
 
-CRYPTO_STATUS isogeny_keygen(PCurveIsogenyStaticData CurveIsogenyData,
-			     unsigned char *PrivateKey,
-			     unsigned char *PublicKey)
+CRYPTO_STATUS
+isogeny_keygen( unsigned char *PrivateKey, unsigned char *PublicKey)
 {
-    unsigned int pbytes = (CurveIsogenyData->pwordbits + 7) / 8;	// Number of bytes in a field element
-    unsigned int n, obytes = (CurveIsogenyData->owordbits + 7) / 8;	// Number of bytes in an element in [1, order]
+    PCurveIsogenyStaticData CurveIsogenyData;
+    unsigned int pbytes = PBYTES;	// Number of bytes in a field element
+    unsigned int n, obytes = OBYTES;	// Number of bytes in an element in [1, order]
     bool valid_PublicKey = false;
     PCurveIsogenyStruct CurveIsogeny = { 0 };
     unsigned long long cycles, cycles1, cycles2;
@@ -51,18 +43,13 @@ CRYPTO_STATUS isogeny_keygen(PCurveIsogenyStaticData CurveIsogenyData,
 
     // Generate Peggy(Bob)'s keys
     passed = true;
-    cycles1 = cpucycles();
     Status = KeyGeneration_B(PrivateKey, PublicKey, CurveIsogeny);
     if (Status != CRYPTO_SUCCESS) {
 	passed = false;
     }
-    cycles2 = cpucycles();
-    cycles = cycles2 - cycles1;
-    if (passed) {
-	//printf("  Key generated in ................... %10lld cycles", cycles);
-    } else {
-	printf("  Key generation failed");
-	goto cleanup;
+    if (!passed) {
+	    printf("  Key generation failed");
+	    goto cleanup;
     }
     printf("\n");
 
@@ -74,13 +61,13 @@ CRYPTO_STATUS isogeny_keygen(PCurveIsogenyStaticData CurveIsogenyData,
     return Status;
 }
 
-void serialize_keys (unsigned char *priv_key, unsigned char *pub_key,
-        int priv_len, int pub_len)
+void serialize_keys (unsigned char *priv_key, unsigned char *pub_key)
 {
     int i;
     FILE *priv_fd, *pub_fd;
     char *priv_key_str, *pub_key_str;
     char *ptr;
+    int priv_len = PRIV_KEY_LEN, pub_len = PUB_KEY_LEN;
 
     priv_key_str = calloc(1, 2 * priv_len + 1); //each byte needs two byte in hex + \0
     pub_key_str = calloc(1, 2 * pub_len + 1);
@@ -130,46 +117,10 @@ void serialize_keys (unsigned char *priv_key, unsigned char *pub_key,
     free(pub_key_str);
 }
 
-int main(int argc, char *argv[])
+int SISig_P751_Keygen(unsigned char *PrivateKey, unsigned char *PublicKey)
 {
-    NUM_THREADS = 1;
-    printf("NUM_THREADS: %d\n", NUM_THREADS);
-    srand(time(0));
-
-    CRYPTO_STATUS Status = CRYPTO_SUCCESS;
-
-    // Number of bytes in a field element
-    unsigned int pbytes = (CurveIsogeny_SIDHp751.pwordbits + 7) / 8;
-    // Number of bytes in an element in [1, order]
-    unsigned int n, obytes = (CurveIsogeny_SIDHp751.owordbits + 7) / 8;
-    unsigned long long cycles1, cycles2, kgcycles;
-
-    // Allocate space for keys
-    unsigned char *PrivateKey, *PublicKey;
-    PrivateKey = calloc(1, obytes);	// One element in [1, order]
-    PublicKey = calloc(1, 4 * 2 * pbytes);	// Four elements in GF(p^2)
-
-    // Generate Keys and measure time
-    cycles1 = cpucycles();
-    Status = isogeny_keygen(&CurveIsogeny_SIDHp751, PrivateKey, PublicKey);
-    if (Status != CRYPTO_SUCCESS) {
-	printf("\n\n   Error detected: %s \n\n",
-	       SIDH_get_error_message(Status));
-	return EXIT_FAILURE;
-    }
-    cycles2 = cpucycles();
-    kgcycles = cycles2 - cycles1;
-
-    printf("KeyGen ............. %10lld cycles\n", kgcycles);
-
-    serialize_keys(PrivateKey, PublicKey, obytes, 4 * 2 * pbytes);
-
-    // Cleanup
-    clear_words((void *) PrivateKey, NBYTES_TO_NWORDS(obytes));
-    clear_words((void *) PublicKey, NBYTES_TO_NWORDS(4 * 2 * pbytes));
-
-    free(PrivateKey);
-    free(PublicKey);
-
-    return EXIT_SUCCESS;
+    if(isogeny_keygen(PrivateKey, PublicKey) != 0)
+        return -1;
+    serialize_keys(PrivateKey, PublicKey);
+    return 0;
 }

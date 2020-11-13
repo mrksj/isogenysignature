@@ -9,6 +9,8 @@
 *
 *********************************************************************************************/
 
+#include <stdio.h>
+#include <string.h>
 
 #include "../SIDH_internal.h"
 #include "test_extras.h"
@@ -225,4 +227,38 @@ void from_mont_basic(felm_t ma, felm_t c)
 
     one[0] = 1;
     fpmul751_mont_basic(ma, one, c);
+}
+
+void print_hash(unsigned char hash[], int size)
+{
+   int idx;
+   for (idx=0; idx < size; idx++)
+      printf("%02x",hash[idx]);
+   printf("\n");
+}
+
+void
+hashdata(unsigned char *PublicKey, char *msg, unsigned int pbytes,
+    unsigned char* com[NUM_ROUNDS][2], uint8_t* ch[NUM_ROUNDS],
+    uint8_t* HashResp[NUM_ROUNDS][2], int hlen, int dlen, uint8_t *data,
+    uint8_t *cHash, int cHashLength)
+{
+    memcpy(data, PublicKey, 4*2*pbytes);
+    memcpy(data + 4*2*pbytes, msg, MSG_LEN);
+    int r;
+    for (r=0; r<NUM_ROUNDS; r++) {
+        memcpy(data + (4*2*pbytes) + (MSG_LEN) + (r*2*2*pbytes), com[r][0],
+                2*pbytes);
+        memcpy(data + (4*2*pbytes) + (MSG_LEN) + (r*2*2*pbytes) + (2*pbytes),
+                com[r][1], 2*pbytes);
+        memcpy(data + (4*2*pbytes) + (MSG_LEN) + (NUM_ROUNDS*2*2*pbytes) +
+                (r*sizeof(uint8_t)), ch[r], sizeof(uint8_t));
+        memcpy(data + (4*2*pbytes) + (MSG_LEN) + (NUM_ROUNDS*2*2*pbytes) +
+                (NUM_ROUNDS*sizeof(uint8_t)) + (r*hlen*sizeof(uint8_t)),
+                HashResp[r][0], hlen*sizeof(uint8_t));
+        memcpy(data + (4*2*pbytes) + (MSG_LEN) + (NUM_ROUNDS*2*2*pbytes) +
+                (NUM_ROUNDS*sizeof(uint8_t)) + (r*hlen*sizeof(uint8_t)) +
+                hlen*sizeof(uint8_t), HashResp[r][1], hlen*sizeof(uint8_t));
+    }
+    keccak(data, dlen, cHash, cHashLength);
 }
