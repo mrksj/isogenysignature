@@ -314,7 +314,7 @@ parse_sigfile_rest(struct Signature *sig, unsigned int pbytes,
         }
         else{
             printf("cannot calculate len of rest signature because of invalid"
-                    "combination of bit=%d and *sig->ch[r]=%d\n",
+                    " combination of bit=%d and *sig->ch[r]=%d\n",
                     bit[r], *sig->ch[r]);
             return -1;
         }
@@ -495,37 +495,37 @@ parse_pubkey(unsigned char *PublicKey, int pub_len)
 
 }
 
-// Optional parameters: #threads, #rounds
-int SISig_P751_Verify(char *msg, unsigned char *sig_binary,
-        unsigned char *PublicKey)
+int
+SISig_P751_Verify(char *msg, unsigned char *sig_binary,
+       unsigned char *PublicKey)
 {
-    struct Signature sig;
+    struct Signature *sig = calloc(1, sizeof(struct Signature));
 
     //read signature data without resp as we have to calculate length of resp
     //first with content from signature data
-    int siglen_cut = (2*NUM_ROUNDS*2*PBYTES) + (NUM_ROUNDS*sizeof(uint8_t)) +
-        (2*NUM_ROUNDS*32*sizeof(uint8_t));
-    unsigned char *sig_cut_serialized = calloc(1, siglen_cut);
-    memcpy(sig_cut_serialized, sig_binary, siglen_cut);
+    //int siglen_cut = (2*NUM_ROUNDS*2*PBYTES) + (NUM_ROUNDS*sizeof(uint8_t)) +
+    //    (2*NUM_ROUNDS*32*sizeof(uint8_t));
+    //unsigned char *sig_cut_serialized = calloc(1, siglen_cut);
+    //memcpy(sig_cut_serialized, sig_binary, siglen_cut);
 
     uint8_t *cHash;
     int cHashLength = NUM_ROUNDS/8;
     cHash = calloc(1, cHashLength);
-    if ((gen_chash(sig_cut_serialized, &sig, PBYTES, PublicKey, msg, cHash,
+    if ((gen_chash(sig_binary, sig, PBYTES, PublicKey, msg, cHash,
                     cHashLength)) != 0){
         printf("%s: failed to generate hash from sig_cut_serialized", __func__);
         return -1;
     }
-    free(sig_cut_serialized);
+    //free(sig_cut_serialized);
 
     uint8_t *bit = calloc(NUM_ROUNDS, sizeof(uint8_t));
-    if (parse_sig_rest(&sig, sig_binary, PBYTES, OBYTES, cHash, bit)
+    if (parse_sig_rest(sig, sig_binary, PBYTES, OBYTES, cHash, bit)
             != 0){
         printf("%s: failed to parse rest of signature", __func__);
         return -1;
     }
 
-    if(isogeny_verify(&CurveIsogeny_SIDHp751, PublicKey, &sig, bit) != 0)
+    if(isogeny_verify(&CurveIsogeny_SIDHp751, PublicKey, sig, bit) != 0)
         return -1;
 
     free(bit);
@@ -534,13 +534,14 @@ int SISig_P751_Verify(char *msg, unsigned char *sig_binary,
     int r;
     for(r=0; r<NUM_ROUNDS; r++)
     {
-        free(sig.com[r][0]);
-        free(sig.com[r][1]);
-        free(sig.ch[r]);
-        free(sig.h[r][0]);
-        free(sig.h[r][1]);
-        free(sig.resp[r]);
+        free(sig->com[r][0]);
+        free(sig->com[r][1]);
+        free(sig->ch[r]);
+        free(sig->h[r][0]);
+        free(sig->h[r][1]);
+        free(sig->resp[r]);
     }
+    free(sig);
 
     return 0;
 }

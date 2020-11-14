@@ -18,7 +18,6 @@
 CRYPTO_STATUS
 isogeny_keygen( unsigned char *PrivateKey, unsigned char *PublicKey)
 {
-    PCurveIsogenyStaticData CurveIsogenyData;
     unsigned int pbytes = PBYTES;	// Number of bytes in a field element
     unsigned int n, obytes = OBYTES;	// Number of bytes in an element in [1, order]
     bool valid_PublicKey = false;
@@ -29,14 +28,14 @@ isogeny_keygen( unsigned char *PrivateKey, unsigned char *PublicKey)
 
 
     // Curve isogeny system initialization
-    CurveIsogeny = SIDH_curve_allocate(CurveIsogenyData);
+    CurveIsogeny = SIDH_curve_allocate(&CurveIsogeny_SIDHp751);
     if (CurveIsogeny == NULL) {
 	Status = CRYPTO_ERROR_NO_MEMORY;
 	goto cleanup;
     }
     Status =
 	SIDH_curve_initialize(CurveIsogeny, &random_bytes_test,
-			      CurveIsogenyData);
+			      &CurveIsogeny_SIDHp751);
     if (Status != CRYPTO_SUCCESS) {
 	goto cleanup;
     }
@@ -61,66 +60,91 @@ isogeny_keygen( unsigned char *PrivateKey, unsigned char *PublicKey)
     return Status;
 }
 
-void serialize_keys (unsigned char *priv_key, unsigned char *pub_key)
+int
+SISig_P751_Write_Privkey(unsigned char *PrivateKey, char *file)
 {
-    int i;
-    FILE *priv_fd, *pub_fd;
-    char *priv_key_str, *pub_key_str;
+    int i, ret=0;
+    FILE *priv_fd;
+    char *priv_key_str;
     char *ptr;
-    int priv_len = PRIV_KEY_LEN, pub_len = PUB_KEY_LEN;
-
-    priv_key_str = calloc(1, 2 * priv_len + 1); //each byte needs two byte in hex + \0
-    pub_key_str = calloc(1, 2 * pub_len + 1);
+    
+    priv_key_str = calloc(1, 2 * PRIV_KEY_LEN + 1); //each byte needs two byte in hex + \0
     ptr = priv_key_str;
-    for (i = 0; i < priv_len; i++)
+    for (i = 0; i < PRIV_KEY_LEN; i++)
     {
-        sprintf(ptr, "%02x", priv_key[i]);
+        sprintf(ptr, "%02x", PrivateKey[i]);
         ptr += 2;
     }
-    priv_key_str[2*priv_len] = '\0';
-    ptr = pub_key_str;
-    for (i = 0; i < pub_len; i++)
-    {
-        sprintf(ptr, "%02x", pub_key[i]);
-        ptr += 2;
-    }
-    pub_key_str[2*pub_len] = '\0';
-    // Write generated keys to files
-    if ((priv_fd = fopen("private.key", "w")) == NULL) {
-	perror("Could not open private.key for writing");
+    priv_key_str[2*PRIV_KEY_LEN] = '\0';
+
+    if ((priv_fd = fopen(file, "w")) == NULL) {
+	    printf("Could not open private.key for writing\n");
     }
     if (fputs("-----BEGIN SISIG PRIVATE KEY-----\n", priv_fd) == EOF){
-        perror("failed writing private key to file");
+        printf("failed writing private key to file\n");
+        ret = -1;
+        goto cleanup;
     }
     if (fputs(priv_key_str, priv_fd) == EOF){
-        perror("failed writing private key to file");
+        printf("failed writing private key to file\n");
+        ret = -1;
+        goto cleanup;
     }
     if (fputs("\n-----END SISIG PRIVATE KEY-----\n", priv_fd) == EOF){
-        perror("failed writing private key to file");
+        printf("failed writing private key to file\n");
+        ret = -1;
+        goto cleanup;
     }
+cleanup:
     fclose(priv_fd);
-    if ((pub_fd = fopen("public.key", "w")) == NULL) {
-	perror("Could not open public.key for writing");
+    free(priv_key_str);
+    return ret;
+}
+
+int
+SISig_P751_Write_Pubkey(unsigned char *PublicKey, char *file)
+{
+    int i, ret=0;
+    FILE *pub_fd;
+    char *pub_key_str;
+    char *ptr;
+    
+    pub_key_str = calloc(1, 2 * PUB_KEY_LEN + 1); //each byte needs two byte in hex + \0
+    ptr = pub_key_str;
+    for (i = 0; i < PUB_KEY_LEN; i++)
+    {
+        sprintf(ptr, "%02x", PublicKey[i]);
+        ptr += 2;
+    }
+    pub_key_str[2*PUB_KEY_LEN] = '\0';
+
+    if ((pub_fd = fopen(file, "w")) == NULL) {
+	    printf("Could not open private.key for writing\n");
     }
     if (fputs("-----BEGIN SISIG PUBLIC KEY-----\n", pub_fd) == EOF){
-        perror("failed writing public key to file");
+        printf("failed writing private key to file\n");
+        ret = -1;
+        goto cleanup;
     }
     if (fputs(pub_key_str, pub_fd) == EOF){
-        perror("failed writing public key to file");
+        printf("failed writing private key to file\n");
+        ret = -1;
+        goto cleanup;
     }
     if (fputs("\n-----END SISIG PUBLIC KEY-----\n", pub_fd) == EOF){
-        perror("failed writing public key to file");
+        printf("failed writing private key to file\n");
+        ret = -1;
+        goto cleanup;
     }
+cleanup:
     fclose(pub_fd);
-
-    free(priv_key_str);
     free(pub_key_str);
+    return ret;
 }
 
 int SISig_P751_Keygen(unsigned char *PrivateKey, unsigned char *PublicKey)
 {
     if(isogeny_keygen(PrivateKey, PublicKey) != 0)
         return -1;
-    serialize_keys(PrivateKey, PublicKey);
     return 0;
 }

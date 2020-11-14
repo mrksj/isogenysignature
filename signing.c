@@ -49,7 +49,7 @@ typedef struct thread_params_sign {
 void *sign_thread(void *TPS) {
     CRYPTO_STATUS Status = CRYPTO_SUCCESS;
     thread_params_sign *tps = (thread_params_sign*) TPS;
-    int CUR_ROUND;
+    int CUR_ROUND = 0;
 
     int r=0;
 
@@ -109,9 +109,8 @@ isogeny_sign(unsigned char *PrivateKey, unsigned char *PublicKey,
         struct Signature *sig, char *msg, struct Responses *resp, unsigned int *resplen)
 {
     int NUM_THREADS = 1;
-    PCurveIsogenyStaticData CurveIsogenyData;
-    unsigned int pbytes = (CurveIsogenyData->pwordbits + 7)/8;      // Number of bytes in a field element
-    unsigned int n, obytes = (CurveIsogenyData->owordbits + 7)/8;   // Number of bytes in an element in [1, order]
+    unsigned int pbytes = (CurveIsogeny_SIDHp751.pwordbits + 7)/8;      // Number of bytes in a field element
+    unsigned int n, obytes = (CurveIsogeny_SIDHp751.owordbits + 7)/8;   // Number of bytes in an element in [1, order]
     PCurveIsogenyStruct CurveIsogeny = {0};
     unsigned long long cycles, cycles1, cycles2, totcycles=0;
 
@@ -119,12 +118,12 @@ isogeny_sign(unsigned char *PrivateKey, unsigned char *PublicKey,
     bool passed;
 
     // Curve isogeny system initialization
-    CurveIsogeny = SIDH_curve_allocate(CurveIsogenyData);
+    CurveIsogeny = SIDH_curve_allocate(&CurveIsogeny_SIDHp751);
     if (CurveIsogeny == NULL) {
         Status = CRYPTO_ERROR_NO_MEMORY;
         //goto cleanup;
     }
-    Status = SIDH_curve_initialize(CurveIsogeny, &random_bytes_test, CurveIsogenyData);
+    Status = SIDH_curve_initialize(CurveIsogeny, &random_bytes_test, &CurveIsogeny_SIDHp751);
     if (Status != CRYPTO_SUCCESS) {
         //goto cleanup;
     }
@@ -179,7 +178,7 @@ isogeny_sign(unsigned char *PrivateKey, unsigned char *PublicKey,
                      (2 * NUM_ROUNDS * 2*pbytes) +
                      (2 * NUM_ROUNDS * sizeof(uint8_t)) +
                      (2 * NUM_ROUNDS * HashLength*sizeof(uint8_t));
-    int cHashLength = NUM_ROUNDS/8;
+    int cHashLength = NUM_ROUNDS/8; //31
     datastring = calloc(1, DataLength);
     cHash = calloc(1, cHashLength);
 
@@ -227,7 +226,7 @@ cleanup:
     return Status;
 }
 
-int
+unsigned char *
 write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes,
         struct Responses resp, unsigned int resplen)
 {
@@ -273,32 +272,32 @@ write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes,
                     S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
     {
         perror("Could not open signature file for writing");
-        return -1;
+        return NULL;
     }
 
     if (write(sig_fd, sig_serialized, siglen) == -1) {
         perror("Could not write signature to file");
-        return -1;
+        return NULL;
     }
 
-    free(sig_serialized);
-
-    return 0;
+    return sig_serialized;
 }
 
-int 
-parse_keys(unsigned char *PrivateKey, unsigned char *PublicKey, int priv_len,
-        int pub_len)
+unsigned char * 
+SISig_P751_Read_Privkey(char *file)
 {
-    int i, j;
-    FILE *priv_fd, *pub_fd; 
+    int i, j, ret = 0;
+    FILE *priv_fd;
     char *line = NULL;
     size_t n = 0;
     ssize_t read;
     char * ptr;
+    unsigned char *PrivateKey = calloc(1, PRIV_KEY_LEN);
 
-    if ((priv_fd=fopen("private.key", "r")) == NULL){
-        perror("failed to open private.key");
+    if ((priv_fd=fopen(file, "r")) == NULL){
+        printf("failed to open private.key");
+        ret = -1;
+        goto cleanup;
     }
 
     i = 0;
@@ -306,38 +305,56 @@ parse_keys(unsigned char *PrivateKey, unsigned char *PublicKey, int priv_len,
         switch (i){
             case 0:
                 if (strncmp(line, "-----BEGIN SISIG PRIVATE KEY-----", 33) != 0){
-                    perror("invalid private.key format");
-                    return -1;
+                    printf("invalid private.key format\n");
+                    ret = -1;
                 }
                 break;
             case 1:
-                if (read != 2 * priv_len + 1){
-                    perror("private key too short");
-                    return -1;
+                if (read != 2 * PRIV_KEY_LEN + 1){
+                    printf("private key too short\n");
+                    ret = -1;
                 }
                 ptr = line;
-                for (j = 0; j < priv_len; j++){
+                for (j = 0; j < PRIV_KEY_LEN; j++){
                     sscanf(ptr, "%2hhx", &PrivateKey[j]);
                     ptr += 2;
                 }
                 break;
             case 2:
                 if (strncmp(line, "-----END SISIG PRIVATE KEY-----", 31) != 0){
-                    perror("invalid private.key format");
-                    return -1;
+                    printf("invalid private.key format\n");
+                    ret = -1;
                 }
                 break;
             default:
-                perror("why do we read more than 3 lines?");
-                return -1;
+                printf("why do we read more than 3 lines?\n");
+                ret = -1;
                 break;
         }
         i += 1;
     }
+cleanup:
     fclose(priv_fd);
+    free(line);
+    return ret == -1 ? NULL : PrivateKey;
+}
     
-    if ((pub_fd=fopen("public.key", "r")) == NULL){
-        perror("failed to open public.key");
+unsigned char*
+SISig_P751_Read_Pubkey(char *file)
+{
+    int i, j, ret = 0;
+    FILE *pub_fd;
+    char *line = NULL;
+    size_t n = 0;
+    ssize_t read;
+    char * ptr;
+    unsigned char *PublicKey = calloc(1, PUB_KEY_LEN);
+
+
+    if ((pub_fd=fopen(file, "r")) == NULL){
+        printf("failed to open public.key\n");
+        ret = -1;
+        goto cleanup;
     }
 
     i = 0;
@@ -345,55 +362,64 @@ parse_keys(unsigned char *PrivateKey, unsigned char *PublicKey, int priv_len,
         switch (i){
             case 0:
                 if (strncmp(line, "-----BEGIN SISIG PUBLIC KEY-----", 32) != 0){
-                    perror("invalid public.key format");
-                    return -1;
+                    printf("invalid public.key format(first line)\n");
+                    ret = -1;
+                    goto cleanup;
                 }
                 break;
             case 1:
-                if (read != 2 * pub_len + 1){
-                    perror("public key too short");
-                    return -1;
+                if (read != 2 * PUB_KEY_LEN + 1){
+                    printf("public key too short\n");
+                    ret = -1;
+                    goto cleanup;
                 }
                 ptr = line;
-                for (j = 0; j < pub_len; j++){
+                for (j = 0; j < PUB_KEY_LEN; j++){
                     sscanf(ptr, "%2hhx", &PublicKey[j]);
                     ptr += 2;
                 }
                 break;
             case 2:
                 if (strncmp(line, "-----END SISIG PUBLIC KEY-----", 30) != 0){
-                    perror("invalid public.key format");
-                    return -1;
+                    printf("invalid public.key format(last line)\n");
+                    ret = -1;
+                    goto cleanup;
                 }
                 break;
             default:
-                perror("why do we read more than 3 lines?");
-                return -1;
+                printf("why do we read more than 3 lines?\n");
+                ret = -1;
+                goto cleanup;
                 break;
         }
         i += 1;
     }
+cleanup:
     fclose(pub_fd);
     free(line);
-
-    return 0;
+    return ret == -1 ? NULL : PublicKey;
 }
 
-int SISig_P751_Sign (char *msg, unsigned char *signature,
-        unsigned char *PrivateKey, unsigned char *PublicKey)
+unsigned char *
+SISig_P751_Sign (char *msg, unsigned char *PrivateKey,
+        unsigned char *PublicKey)
 {
-    struct Responses resp;
+    struct Signature *sig = calloc(1, sizeof(struct Signature));
+    struct Responses *resp = calloc(1, sizeof(struct Responses));
     unsigned int *resplen = calloc(1, sizeof(unsigned int));
+    unsigned char *signature;
 
 
-    if(isogeny_sign(PrivateKey, PublicKey, (struct Signature *)signature, msg,
-                &resp, resplen) != 0)
-        return -1;
+    if(isogeny_sign(PrivateKey, PublicKey, sig, msg, resp, resplen) != 0)
+        return NULL;
     //not necessary but for debugging keep in inside
-    if(write_sigfile(*(struct Signature *)signature, OBYTES, PBYTES, resp,
-                *resplen) != 0)
-        return -1;
-    return 0;
+    if ((signature = write_sigfile(*sig, PBYTES, OBYTES, *resp,
+                *resplen)) == NULL)
+        return NULL;
 
+    free(resp);
     free(resplen);
+    free(sig);
+    return signature;
+
 }
