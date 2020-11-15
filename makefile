@@ -50,8 +50,6 @@ OBJECTS_KEYGEN=keygen.o $(OBJECTS_TEST) $(OBJECTS)
 OBJECTS_SIGNING=signing.o $(OBJECTS_TEST) $(OBJECTS)
 OBJECTS_VERIFY=verify.o $(OBJECTS_TEST) $(OBJECTS)
 OBJECTS_SIGNATURESCHEME=signature_scheme.o keygen.o signing.o verify.o keccak.o $(OBJECTS_TEST) $(OBJECTS)
-OBJECTS_ALL=$(OBJECTS) $(OBJECTS_KEYGEN)
-OBJECTS_ALL=$(OBJECTS) $(OBJECTS_KEX_TEST) $(OBJECTS_KEYGEN) $(OBJECTS_SIGNING) $(OBJECTS_VERIFY)
 
 lib: $(OBJECTS_SIGNATURESCHEME)
 	$(CC) -shared -Wl,-soname,libsisig.so.1 -o libsisig.so.1.0   $(OBJECTS_SIGNATURESCHEME)
@@ -120,5 +118,4 @@ keccak.o: keccak.c
 .PHONY: clean
 
 clean:
-	rm signature_scheme keccak.o sha256.o signature_scheme.o fp_generic.o fp_x64.o fp_x64_asm.o $(OBJECTS_ALL)
-
+	rm signature_scheme libsisig.so.1.0 private.key public.key $(OBJECTS_SIGNATURESCHEME)

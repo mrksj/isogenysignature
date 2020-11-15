@@ -492,6 +492,7 @@ parse_pubkey(unsigned char *PublicKey, int pub_len)
     }
     fclose(pub_fd);
     free(line);
+    return 0;
 
 }
 
