@@ -497,7 +497,7 @@ parse_pubkey(unsigned char *PublicKey, int pub_len)
 }
 
 int
-SISig_P751_Verify(char *msg, unsigned char *sig_binary,
+SISig_P751_Verify(char *msg, struct SigData *sigdata,
        unsigned char *PublicKey)
 {
     struct Signature *sig = calloc(1, sizeof(struct Signature));
@@ -512,7 +512,7 @@ SISig_P751_Verify(char *msg, unsigned char *sig_binary,
     uint8_t *cHash;
     int cHashLength = NUM_ROUNDS/8;
     cHash = calloc(1, cHashLength);
-    if ((gen_chash(sig_binary, sig, PBYTES, PublicKey, msg, cHash,
+    if ((gen_chash(sigdata->sig, sig, PBYTES, PublicKey, msg, cHash,
                     cHashLength)) != 0){
         printf("%s: failed to generate hash from sig_cut_serialized", __func__);
         return -1;
@@ -520,7 +520,7 @@ SISig_P751_Verify(char *msg, unsigned char *sig_binary,
     //free(sig_cut_serialized);
 
     uint8_t *bit = calloc(NUM_ROUNDS, sizeof(uint8_t));
-    if (parse_sig_rest(sig, sig_binary, PBYTES, OBYTES, cHash, bit)
+    if (parse_sig_rest(sig, sigdata->sig, PBYTES, OBYTES, cHash, bit)
             != 0){
         printf("%s: failed to parse rest of signature", __func__);
         return -1;

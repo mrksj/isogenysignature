@@ -31,7 +31,7 @@ main(int argc, char **argv)
     // Allocate space for keys
     unsigned char *PrivateKey = calloc(1, PRIV_KEY_LEN);
     unsigned char *PublicKey = calloc(1, PUB_KEY_LEN);
-    unsigned char *signature;
+    struct SigData *sigdata;
 
 
     char *sig_msg = calloc(1, MSGSIZE);        // msg to be signed
@@ -53,18 +53,23 @@ main(int argc, char **argv)
     SISig_P751_Write_Pubkey(PublicKey, "public.key");
     unsigned char *PrivateKey2 = calloc(1, PRIV_KEY_LEN);
     unsigned char *PublicKey2 = calloc(1, PUB_KEY_LEN);
-    sleep(5);
     PrivateKey2 = SISig_P751_Read_Privkey("private.key");
     PublicKey2 = SISig_P751_Read_Pubkey("public.key");
 
     printf("Signing...\n");
-    if((signature = SISig_P751_Sign(sig_msg, PrivateKey2, PublicKey2))
+    if((sigdata = SISig_P751_Sign(sig_msg, PrivateKey2, PublicKey2))
             == NULL)
         goto cleanup;
-    printf("signature: %p\n", signature);
+
+    printf("siglen: %d\n", sigdata->siglen);
+    //int i;
+    //for(i = 0; i < sigdata->siglen; i++){
+    //    printf("%02x", sigdata->sig[i]);
+    //}
+    //printf("\n");
 
     printf("Verifying...\n");
-    if(SISig_P751_Verify(verify_msg, signature, PublicKey2) != 0)
+    if(SISig_P751_Verify(verify_msg, sigdata, PublicKey2) != 0)
         goto cleanup;
 
 cleanup:
@@ -78,7 +83,8 @@ cleanup:
     free(PublicKey2);
     free(sig_msg);
     free(verify_msg);
-    free(signature);
+    free(sigdata->sig);
+    free(sigdata);
 
     return 0;
 }

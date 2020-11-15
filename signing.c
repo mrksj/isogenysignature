@@ -226,8 +226,8 @@ cleanup:
     return Status;
 }
 
-unsigned char *
-write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes,
+struct SigData *
+write_sigdata(struct Signature sig, unsigned int pbytes, unsigned int obytes,
         struct Responses resp, unsigned int resplen)
 {
     int sig_fd;
@@ -235,7 +235,9 @@ write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes,
     unsigned int chlen = NUM_ROUNDS*sizeof(uint8_t);
     unsigned int hlen = 2*NUM_ROUNDS*32*sizeof(uint8_t);
     unsigned int siglen = comlen + chlen + hlen + resplen;
+    unsigned int single_resp_r;
     unsigned char *sig_serialized = calloc(1, siglen);
+    struct SigData *sigdata = calloc(1, sizeof(struct SigData));
 
     unsigned int act_resp_pos = 0;
     int r;
@@ -243,7 +245,7 @@ write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes,
     {
         // if sig.resp[r] points to same location as resp.R[r], it needs obytes
         // space, otherwise it needs sizeof(point_proj) bytes space (384)
-        int single_resp_r = sig.resp[r] == resp.R[r] ?
+        single_resp_r = sig.resp[r] == resp.R[r] ?
             obytes : sizeof(point_proj);
 
         memcpy(sig_serialized + (r*4*pbytes), sig.com[r][0], 2*pbytes);
@@ -268,19 +270,19 @@ write_sigfile(struct Signature sig, unsigned int pbytes, unsigned int obytes,
         free(resp.psiS[r]);
     }
 
-    if ((sig_fd = open("signature", O_WRONLY | O_CREAT,
-                    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
-    {
-        perror("Could not open signature file for writing");
-        return NULL;
-    }
+    //if ((sig_fd = open("signature", O_WRONLY | O_CREAT,
+    //                S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
+    //{
+    //    perror("Could not open signature file for writing");
+    //}
 
-    if (write(sig_fd, sig_serialized, siglen) == -1) {
-        perror("Could not write signature to file");
-        return NULL;
-    }
+    //if (write(sig_fd, sig_serialized, siglen) == -1) {
+    //    perror("Could not write signature to file");
+    //}
 
-    return sig_serialized;
+    sigdata->sig = sig_serialized;
+    sigdata->siglen = siglen;
+    return sigdata;
 }
 
 unsigned char * 
@@ -400,7 +402,7 @@ cleanup:
     return ret == -1 ? NULL : PublicKey;
 }
 
-unsigned char *
+struct SigData *
 SISig_P751_Sign (char *msg, unsigned char *PrivateKey,
         unsigned char *PublicKey)
 {
@@ -408,18 +410,18 @@ SISig_P751_Sign (char *msg, unsigned char *PrivateKey,
     struct Responses *resp = calloc(1, sizeof(struct Responses));
     unsigned int *resplen = calloc(1, sizeof(unsigned int));
     unsigned char *signature;
+    struct SigData *sigdata;
 
 
     if(isogeny_sign(PrivateKey, PublicKey, sig, msg, resp, resplen) != 0)
         return NULL;
-    //not necessary but for debugging keep in inside
-    if ((signature = write_sigfile(*sig, PBYTES, OBYTES, *resp,
+    if ((sigdata = write_sigdata(*sig, PBYTES, OBYTES, *resp,
                 *resplen)) == NULL)
         return NULL;
 
     free(resp);
     free(resplen);
     free(sig);
-    return signature;
+    return sigdata;
 
 }

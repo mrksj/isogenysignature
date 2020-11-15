@@ -3,14 +3,19 @@
 #define PRIV_KEY_LEN OBYTES      //Privatekey len in bytes
 #define PUB_KEY_LEN 8*PBYTES     //Publickey len in bytes
 
+struct SigData {
+    unsigned char *sig;
+    unsigned int siglen;
+};
+
 int
 SISig_P751_Keygen(unsigned char *PrivateKey, unsigned char *PublicKey);
 
-unsigned char *
+struct SigData *
 SISig_P751_Sign(char *msg, unsigned char *PrivateKey, unsigned char *PublicKey);
 
 int
-SISig_P751_Verify(char *msg, unsigned char *sig, unsigned char *PublicKey);
+SISig_P751_Verify(char *msg, struct SigData *sigdata, unsigned char *PublicKey);
 
 unsigned char *
 SISig_P751_Read_Pubkey(char *file);
