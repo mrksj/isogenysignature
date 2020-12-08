@@ -42,7 +42,6 @@ typedef struct thread_params_sign {
     struct Responses *resp;
 
     unsigned int pbytes;
-    unsigned int n;
     unsigned int obytes;
 } thread_params_sign;
 
@@ -110,7 +109,7 @@ isogeny_sign(unsigned char *PrivateKey, unsigned char *PublicKey,
 {
     int NUM_THREADS = 1;
     unsigned int pbytes = (CurveIsogeny_SIDHp751.pwordbits + 7)/8;      // Number of bytes in a field element
-    unsigned int n, obytes = (CurveIsogeny_SIDHp751.owordbits + 7)/8;   // Number of bytes in an element in [1, order]
+    unsigned int obytes = (CurveIsogeny_SIDHp751.owordbits + 7)/8;   // Number of bytes in an element in [1, order]
     PCurveIsogenyStruct CurveIsogeny = {0};
     unsigned long long cycles, cycles1, cycles2, totcycles=0;
 
@@ -135,7 +134,7 @@ isogeny_sign(unsigned char *PrivateKey, unsigned char *PublicKey,
         printf("ERROR: mutex init failed\n");
         return 1;
     }
-    thread_params_sign tps = {&CurveIsogeny, PrivateKey, PublicKey, sig, resp, pbytes, n, obytes};
+    thread_params_sign tps = {&CurveIsogeny, PrivateKey, PublicKey, sig, resp, pbytes, obytes};
 
     int t;
     for (t=0; t<NUM_THREADS; t++) {

@@ -35,9 +35,9 @@ main(int argc, char **argv)
 
 
     char *sig_msg = calloc(1, MSGSIZE);        // msg to be signed
-    strncpy(sig_msg, "Hi Bob!", MSGSIZE-1);
+    strncpy(sig_msg, "Hi Bobby!", MSGSIZE-1);
     char *verify_msg = calloc(1, MSGSIZE);     // msg to be verified
-    strncpy(verify_msg, "Hi Bob!", MSGSIZE-1);
+    strncpy(verify_msg, "Hi Bobby!", MSGSIZE-1);
 
     printf("Keygeneration...\n");
     if(SISig_P751_Keygen(PrivateKey, PublicKey) != 0)
