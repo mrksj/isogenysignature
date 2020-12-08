@@ -25,12 +25,19 @@ int
 main(int argc, char **argv)
 {
     int NUM_THREADS = 1;
+    int i;
+    clock_t t;
+    clock_t total_keygen=0, total_sign=0, total_verify=0;
+    double t_keygen, t_sign, t_verify;
+    double total_t_keygen, total_t_sign, total_t_verify;
     printf("NUM_THREADS: %d\n", NUM_THREADS);
     srand(time(0));
 
     // Allocate space for keys
     unsigned char *PrivateKey = calloc(1, PRIV_KEY_LEN);
     unsigned char *PublicKey = calloc(1, PUB_KEY_LEN);
+    unsigned char *PrivateKey2 = calloc(1, PRIV_KEY_LEN);
+    unsigned char *PublicKey2 = calloc(1, PUB_KEY_LEN);
     struct SigData *sigdata;
 
 
@@ -39,38 +46,58 @@ main(int argc, char **argv)
     char *verify_msg = calloc(1, MSGSIZE);     // msg to be verified
     strncpy(verify_msg, "Hi Bobby!", MSGSIZE-1);
 
-    printf("Keygeneration...\n");
-    if(SISig_P751_Keygen(PrivateKey, PublicKey) != 0)
-        goto cleanup;
-    printf("generated PrivateKey:\n");
-    print_hash(PrivateKey, PRIV_KEY_LEN);
-    printf("generated PublicKey:\n");
-    print_hash(PublicKey, PUB_KEY_LEN);
+    for (i = 0; i < 100; i++){
+        printf("Keygeneration...\n");
+        t = clock();
+        if(SISig_P751_Keygen(PrivateKey, PublicKey) != 0)
+            goto cleanup;
+        t = clock() - t;
+        t_keygen = ((double)t)/CLOCKS_PER_SEC;
+        total_keygen += t;
+        printf("generated PrivateKey:\n");
+        print_hash(PrivateKey, PRIV_KEY_LEN);
+        printf("generated PublicKey:\n");
+        print_hash(PublicKey, PUB_KEY_LEN);
 
-    //write keys to file and read back in to check functionality
-    
-    SISig_P751_Write_Privkey(PrivateKey, "private.key");
-    SISig_P751_Write_Pubkey(PublicKey, "public.key");
-    unsigned char *PrivateKey2 = calloc(1, PRIV_KEY_LEN);
-    unsigned char *PublicKey2 = calloc(1, PUB_KEY_LEN);
-    PrivateKey2 = SISig_P751_Read_Privkey("private.key");
-    PublicKey2 = SISig_P751_Read_Pubkey("public.key");
+        //write keys to file and read back in to check functionality
 
-    printf("Signing...\n");
-    if((sigdata = SISig_P751_Sign(sig_msg, PrivateKey2, PublicKey2))
-            == NULL)
-        goto cleanup;
+        SISig_P751_Write_Privkey(PrivateKey, "private.key");
+        SISig_P751_Write_Pubkey(PublicKey, "public.key");
+        PrivateKey2 = SISig_P751_Read_Privkey("private.key");
+        PublicKey2 = SISig_P751_Read_Pubkey("public.key");
 
-    printf("siglen: %d\n", sigdata->siglen);
-    //int i;
-    //for(i = 0; i < sigdata->siglen; i++){
-    //    printf("%02x", sigdata->sig[i]);
-    //}
-    //printf("\n");
+        printf("Signing...\n");
+        t = clock();
+        if((sigdata = SISig_P751_Sign(sig_msg, PrivateKey2, PublicKey2))
+                == NULL)
+            goto cleanup;
+        t = clock() - t;
+        t_sign = ((double)t)/CLOCKS_PER_SEC;
+        total_sign += t;
 
-    printf("Verifying...\n");
-    if(SISig_P751_Verify(verify_msg, sigdata, PublicKey2) != 0)
-        goto cleanup;
+        printf("siglen: %d\n", sigdata->siglen);
+        //int i;
+        //for(i = 0; i < sigdata->siglen; i++){
+        //    printf("%02x", sigdata->sig[i]);
+        //}
+        //printf("\n");
+
+        printf("Verifying...\n");
+        t = clock();
+        if(SISig_P751_Verify(verify_msg, sigdata, PublicKey2) != 0)
+            goto cleanup;
+        t = clock() - t;
+        t_verify = ((double)t)/CLOCKS_PER_SEC;
+        total_verify += t;
+
+        printf("%f,%f,%f\n", t_keygen, t_sign, t_verify);
+    }
+    total_t_keygen = ((double)total_keygen) / (CLOCKS_PER_SEC * 100);
+    total_t_sign = ((double)total_sign) / (CLOCKS_PER_SEC * 100);
+    total_t_verify = ((double)total_verify) / (CLOCKS_PER_SEC * 100);
+
+    printf("***Mittelwerte:\n");
+    printf("%f,%f,%f\n", total_t_keygen, total_t_sign, total_t_verify);
 
 cleanup:
     // Cleanup
