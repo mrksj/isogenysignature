@@ -2,8 +2,8 @@
 
 #OPT=-O3     # Optimization option by default
 #DEBUG=
-OPT=-O0
-DEBUG=-g
+OPT=-O3
+DEBUG=""
 
 COMPILER=clang
 
