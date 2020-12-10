@@ -17,6 +17,7 @@
 
 
 pthread_mutex_t RLOCK2;
+int CUR_ROUND_VERIFY = 0;
 
 struct Signature
 {
@@ -36,7 +37,6 @@ typedef struct thread_params_verify {
     uint8_t *bit;
 
     unsigned int pbytes;
-    unsigned int n;
     unsigned int obytes;
 } thread_params_verify;
 
@@ -44,7 +44,6 @@ void *verify_thread(void *TPV) {
     CRYPTO_STATUS Status = CRYPTO_SUCCESS;
     thread_params_verify *tpv = (thread_params_verify*) TPV;
 
-    int CUR_ROUND = 0;
     // iterate through cHash bits as challenge and verify
     bool verified = true;
     int r=0;
@@ -54,13 +53,14 @@ void *verify_thread(void *TPV) {
         int stop=0;
 
         pthread_mutex_lock(&RLOCK2);
-        if (CUR_ROUND >= NUM_ROUNDS) {
+        if (CUR_ROUND_VERIFY >= NUM_ROUNDS) {
             stop=1;
         } else {
-            r = CUR_ROUND;
-            CUR_ROUND++;
+            r = CUR_ROUND_VERIFY;
+            CUR_ROUND_VERIFY++;
         }
         pthread_mutex_unlock(&RLOCK2);
+        //printf("thread with id: %lu has r: %d\n", pthread_self(), r);
 
         if (stop) break;
 
@@ -163,7 +163,6 @@ CRYPTO_STATUS
 isogeny_verify(PCurveIsogenyStaticData CurveIsogenyData,
         unsigned char *PublicKey, struct Signature *sig, uint8_t *bit)
 {
-    int NUM_THREADS = 1;
     // Number of bytes in a field element
     unsigned int pbytes = (CurveIsogenyData->pwordbits + 7)/8;
    // Number of bytes in an element in [1, order]
@@ -188,12 +187,13 @@ isogeny_verify(PCurveIsogenyStaticData CurveIsogenyData,
     }
 
     // Run the verifying rounds
+    CUR_ROUND_VERIFY = 0;
     pthread_t verify_threads[NUM_THREADS];
     if (pthread_mutex_init(&RLOCK2, NULL)) {
         printf("ERROR: mutex init failed\n");
         return 1;
     }
-    thread_params_verify tpv = {&CurveIsogeny, PublicKey, sig, bit, pbytes, n, obytes};
+    thread_params_verify tpv = {&CurveIsogeny, PublicKey, sig, bit, pbytes, obytes};
 
     int t;
     for (t=0; t<NUM_THREADS; t++) {

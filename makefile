@@ -1,7 +1,9 @@
 ####  Makefile for compilation on Linux  ####
 
-#OPT=-O3     # Optimization option by default
-OPT=-O3
+OPT=-O3     # Optimization option by default
+#OPT=-O0
+DEBUG=
+#DEBUG=-g
 
 ifeq "$(CC)" "gcc"
     COMPILER=gcc
@@ -35,7 +37,7 @@ ifeq "$(ARCH)" "ARM"
 endif
 
 cc=$(COMPILER)
-CFLAGS=-c $(OPT) -fPIC $(ADDITIONAL_SETTINGS) -D $(ARCHITECTURE) -D __LINUX__ $(USE_ASM) $(USE_GENERIC)
+CFLAGS=-c $(DEBUG) $(OPT) -fPIC $(ADDITIONAL_SETTINGS) -D $(ARCHITECTURE) -D __LINUX__ $(USE_ASM) $(USE_GENERIC)
 LDFLAGS=
 ifeq "$(GENERIC)" "TRUE"
     EXTRA_OBJECTS=fp_generic.o

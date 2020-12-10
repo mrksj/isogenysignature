@@ -18,6 +18,7 @@
 #include "keccak.h"
 
 pthread_mutex_t RLOCK;
+int CUR_ROUND_SIGN = 0;
 
 struct Signature
 {
@@ -48,23 +49,23 @@ typedef struct thread_params_sign {
 void *sign_thread(void *TPS) {
     CRYPTO_STATUS Status = CRYPTO_SUCCESS;
     thread_params_sign *tps = (thread_params_sign*) TPS;
-    int CUR_ROUND = 0;
 
-    int r=0;
+    int r;
 
     while (1) {
         int stop=0;
 
         pthread_mutex_lock(&RLOCK);
-        if (CUR_ROUND >= NUM_ROUNDS) {
+        if (CUR_ROUND_SIGN >= NUM_ROUNDS) {
             stop=1;
         } else {
-            r = CUR_ROUND;
-            CUR_ROUND++;
+            r = CUR_ROUND_SIGN;
+            CUR_ROUND_SIGN++;
         }
         pthread_mutex_unlock(&RLOCK);
 
         if (stop) break;
+        //printf("thread with id: %lu has r: %d\n", pthread_self(), r);
 
 
         tps->resp->R[r] = calloc(1, tps->obytes); // 48 bytes (384bit)
@@ -107,7 +108,6 @@ CRYPTO_STATUS
 isogeny_sign(unsigned char *PrivateKey, unsigned char *PublicKey,
         struct Signature *sig, char *msg, struct Responses *resp, unsigned int *resplen)
 {
-    int NUM_THREADS = 1;
     unsigned int pbytes = (CurveIsogeny_SIDHp751.pwordbits + 7)/8;      // Number of bytes in a field element
     unsigned int obytes = (CurveIsogeny_SIDHp751.owordbits + 7)/8;   // Number of bytes in an element in [1, order]
     PCurveIsogenyStruct CurveIsogeny = {0};
@@ -129,6 +129,7 @@ isogeny_sign(unsigned char *PrivateKey, unsigned char *PublicKey,
 
     // Run the ZKP rounds
     int r;
+    CUR_ROUND_SIGN = 0;
     pthread_t sign_threads[NUM_THREADS];
     if (pthread_mutex_init(&RLOCK, NULL)) {
         printf("ERROR: mutex init failed\n");

@@ -24,6 +24,7 @@ extern "C" {
 
 #define NUM_ROUNDS       248
 #define MSG_LEN          1024
+extern int NUM_THREADS;
 
 // Access system counter for benchmarking
 int64_t cpucycles(void);
