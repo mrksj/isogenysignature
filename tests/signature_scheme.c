@@ -26,7 +26,7 @@ int NUM_THREADS;
 int
 main(int argc, char **argv)
 {
-    int NUM = 100;
+    int NUM = 1;
     int i;
     srand(time(0));
     struct timeval t0, t1, dt_keygen, dt_sign, dt_verify;
@@ -38,14 +38,16 @@ main(int argc, char **argv)
     timerclear(&verify_sum);
     
     
-    NUM_THREADS = 4;
+    NUM_THREADS = 1;
     printf("NUM_THREADS: %d\n", NUM_THREADS);
 
     // Allocate space for keys
     unsigned char *PrivateKey = calloc(1, PRIV_KEY_LEN);
     unsigned char *PublicKey = calloc(1, PUB_KEY_LEN);
-    unsigned char *PrivateKey2 = calloc(1, PRIV_KEY_LEN);
-    unsigned char *PublicKey2 = calloc(1, PUB_KEY_LEN);
+    unsigned char *PrivateKey2;
+    unsigned char *PublicKey2;
+    //unsigned char *PrivateKey2 = calloc(1, PRIV_KEY_LEN);
+    //unsigned char *PublicKey2 = calloc(1, PUB_KEY_LEN);
     struct SigData *sigdata;
 
 
@@ -120,6 +122,8 @@ cleanup:
     // Cleanup
     clear_words((void *) PrivateKey, NBYTES_TO_NWORDS(PRIV_KEY_LEN));
     clear_words((void *) PublicKey, NBYTES_TO_NWORDS(PUB_KEY_LEN));
+    clear_words((void *) PrivateKey2, NBYTES_TO_NWORDS(PRIV_KEY_LEN));
+    clear_words((void *) PublicKey2, NBYTES_TO_NWORDS(PUB_KEY_LEN));
 
     free(PrivateKey);
     free(PublicKey);
